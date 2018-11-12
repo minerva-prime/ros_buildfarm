@@ -99,6 +99,8 @@ def call_build_tool(
         setup_file = os.path.join(parent_result_space, 'setup.sh')
         if os.path.exists(setup_file):
             cmd = '. %s && %s' % (setup_file, cmd)
+            if build_tool == 'colcon':
+                cmd = 'COLCON_CURRENT_PREFIX="%s" %s' % (parent_result_space, cmd)
 
     print("Invoking '%s' in '%s'" % (cmd, workspace_root))
     return subprocess.call(
