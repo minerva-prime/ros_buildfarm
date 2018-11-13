@@ -87,7 +87,7 @@ def main(argv=sys.argv[1:]):
                     additional_args = ['--cmake-target-skip-unavailable']
                 rc = call_build_tool(
                     args.build_tool, args.rosdistro_name, args.workspace_root,
-                    cmake_args=cmake_args, force_cmake=True,
+                    cmake_args=cmake_args,
                     make_args=['tests'], args=additional_args,
                     parent_result_spaces=parent_result_spaces, env=env)
             if not rc:
@@ -112,7 +112,7 @@ def main(argv=sys.argv[1:]):
                     rc = call_build_tool(
                         args.build_tool,
                         args.rosdistro_name, args.workspace_root,
-                        cmake_args=cmake_args,
+                        cmake_args=cmake_args, force_cmake=True,
                         make_args=make_args, args=additional_args,
                         parent_result_spaces=parent_result_spaces, env=env,
                         colcon_verb='test')
