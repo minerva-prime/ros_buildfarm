@@ -44,7 +44,7 @@ def clean_workspace(workspace_root):
 
 def call_build_tool(
     build_tool, rosdistro_name, workspace_root, cmake_args=None,
-    cmake_clean_cache=False, install=False, make_args=None, args=None,
+    force_cmake=False, install=False, make_args=None, args=None,
     parent_result_spaces=None, env=None, colcon_verb='build'
 ):
     # command to run
@@ -69,22 +69,11 @@ def call_build_tool(
             cmd += ['--install-base', 'install_isolated']
             cmd += ['--test-result-base', 'test_results']
 
-    if cmake_clean_cache:
+    if force_cmake:
         if build_tool == 'catkin_make_isolated':
-            # since cmi doesn't have such an option manually delete the caches
-            print("Emulating '--cmake-clean-cache' in '%s'" % workspace_root)
-            build_space = os.path.join(workspace_root, 'build_isolated')
-            for name in os.listdir(build_space):
-                pkg_build_dir = os.path.join(build_space, name)
-                if not os.path.isdir(pkg_build_dir):
-                    continue
-                cache_file = os.path.join(pkg_build_dir, 'CMakeCache.txt')
-                if os.path.exists(cache_file):
-                    print("- rm '%s/CMakeCache.txt'" % name)
-                    os.remove(cache_file)
-
+            cmd.append('--force-cmake')
         elif build_tool == 'colcon':
-            cmd.append('--cmake-clean-cache')
+            cmd.append('--cmake-force-configure')
 
     if install and build_tool == 'catkin_make_isolated':
         cmd.append('--install')
