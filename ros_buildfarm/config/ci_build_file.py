@@ -30,7 +30,7 @@ class CIBuildFile(BuildFile):
             "Source build file for '%s' lacks required version information" % \
             self.name
         assert int(data['version']) in [1], \
-            ("Unable to handle '%s' format version '%d'." % \
+            "Unable to handle '%s' format version '%d'." % \
             (CIBuildFile._type, int(data['version']))
         self.version = int(data['version'])
 
