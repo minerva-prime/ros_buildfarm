@@ -250,7 +250,7 @@ parameters = [
     'builder_shell',
     script='\n'.join([
         'echo "# BEGIN SECTION: Compress install space"',
-        'tar -cjf $WORKSPACE/ros2-%s-linux-%s-%s-ci.tar.bz2 -C $WORKSPACE/ws --transform "s/^install_merged/ros2-linux/" install_merged' % (rosdistro_name, os_code_name, arch),
+        'tar -cjf $WORKSPACE/ros2-%s-linux-%s-%s-ci.tar.bz2 -C $WORKSPACE/ws --transform "s/^install_isolated/ros2-linux/" install_isolated' % (rosdistro_name, os_code_name, arch),
         'echo "# END SECTION"',
     ]),
 ))@
@@ -260,7 +260,7 @@ parameters = [
         'if [ "$skip_cleanup" = "false" ]; then',
         'echo "# BEGIN SECTION: Clean up to save disk space on agents"',
         'rm -fr ws/build',
-        'rm -fr ws/install_merged',
+        'rm -fr ws/install_isolated',
         'echo "# END SECTION"',
         'fi',
     ]),
