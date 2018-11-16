@@ -69,9 +69,9 @@ cmds = [
     ' --skip-rosdep-keys ' + ' '.join(skip_rosdep_keys),
 
     'PYTHONPATH=/tmp/ros_buildfarm:$PYTHONPATH python3 -u' + \
-    ' /tmp/ros_buildfarm/scripts/ci/colcon_build_task_generator.py' + \
+    ' /tmp/ros_buildfarm/scripts/ci/build_and_test_task_generator.py' + \
     args + \
-    ' --dockerfile-dir /tmp/docker_colcon_build',
+    ' --dockerfile-dir /tmp/docker_build_and_test',
 ]
 }@
 CMD ["@(' && '.join(cmds))"]

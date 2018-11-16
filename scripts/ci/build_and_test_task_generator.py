@@ -105,7 +105,7 @@ def main(argv=sys.argv[1:]):
         'parent_result_space': ['/tmp/parent_ws'],
     }
     create_dockerfile(
-        'ci/colcon_build.Dockerfile.em', data, args.dockerfile_dir)
+        'ci/build_and_test.Dockerfile.em', data, args.dockerfile_dir)
 
     # output hints about necessary volumes to mount
     ros_buildfarm_basepath = os.path.normpath(

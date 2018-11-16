@@ -26,7 +26,7 @@ parameters = [
     {
         'type': 'boolean',
         'name': 'skip_cleanup',
-        'description': 'Skip cleanup of colcon build artifacts as well as rosdoc index',
+        'description': 'Skip cleanup of build artifacts as well as rosdoc index',
     },
     {
         'type': 'string',
@@ -136,16 +136,16 @@ parameters = [
         '',
         'echo "# BEGIN SECTION: Run Dockerfile - generating CI tasks"',
         'rm -fr $WORKSPACE/docker_create_workspace',
-        'rm -fr $WORKSPACE/docker_colcon_build',
+        'rm -fr $WORKSPACE/docker_build_and_test',
         'mkdir -p $WORKSPACE/docker_create_workspace',
-        'mkdir -p $WORKSPACE/docker_colcon_build',
+        'mkdir -p $WORKSPACE/docker_build_and_test',
         'docker run' +
         ' --rm ' +
         ' --cidfile=$WORKSPACE/docker_generating_dockers/docker.cid' +
         ' -e=HOME=/home/buildfarm' +
         ' -v $WORKSPACE/ros_buildfarm:/tmp/ros_buildfarm:ro' +
         ' -v $WORKSPACE/docker_create_workspace:/tmp/docker_create_workspace' +
-        ' -v $WORKSPACE/docker_colcon_build:/tmp/docker_colcon_build' +
+        ' -v $WORKSPACE/docker_build_and_test:/tmp/docker_build_and_test' +
         ' ci_task_generation.%s' % (rosdistro_name),
         'cd -',  # restore pwd when used in scripts
         'echo "# END SECTION"',
@@ -155,7 +155,7 @@ parameters = [
     'builder_shell',
     script='\n'.join([
         '# monitor all subprocesses and enforce termination',
-        'python3 -u $WORKSPACE/ros_buildfarm/scripts/subprocess_reaper.py $$ --cid-file $WORKSPACE/docker_colcon_build/docker.cid > $WORKSPACE/docker_colcon_build/subprocess_reaper.log 2>&1 &',
+        'python3 -u $WORKSPACE/ros_buildfarm/scripts/subprocess_reaper.py $$ --cid-file $WORKSPACE/docker_build_and_test/docker.cid > $WORKSPACE/docker_build_and_test/subprocess_reaper.log 2>&1 &',
         '# sleep to give python time to startup',
         'sleep 1',
         '',
@@ -167,13 +167,13 @@ parameters = [
         'echo "# END SECTION"',
         '',
         'echo "# BEGIN SECTION: Run Dockerfile - create workspace"',
-        'rm -fr $WORKSPACE/colcon_workspace/src',
-        'mkdir -p $WORKSPACE/colcon_workspace/src',
+        'rm -fr $WORKSPACE/ws/src',
+        'mkdir -p $WORKSPACE/ws/src',
         'docker run' +
         ' --rm ' +
         ' --cidfile=$WORKSPACE/docker_create_workspace/docker.cid' +
         ' -v $WORKSPACE/ros_buildfarm:/tmp/ros_buildfarm:ro' +
-        ' -v $WORKSPACE/colcon_workspace:/tmp/colcon_workspace' +
+        ' -v $WORKSPACE/ws:/tmp/ws' +
         ' -v $WORKSPACE/underlay/ros2-linux:/tmp/parent_ws' +
         ' ci_create_workspace.%s' % (rosdistro_name),
         'cd -',  # restore pwd when used in scripts
@@ -184,12 +184,12 @@ parameters = [
     'builder_shell',
     script='\n'.join([
         'echo "# BEGIN SECTION: Copy dependency list"',
-        '/bin/cp -f $WORKSPACE/colcon_workspace/install_list.txt $WORKSPACE/docker_colcon_build/',
+        '/bin/cp -f $WORKSPACE/ws/install_list.txt $WORKSPACE/docker_build_and_test/',
         'echo "# END SECTION"',
         'echo "# BEGIN SECTION: Ignore some packages"',
     ] +
     [
-        'touch $WORKSPACE/colcon_workspace/src/ros2/%s/COLCON_IGNORE' % (subdir) for subdir in build_ignore
+        'touch $WORKSPACE/ws/src/ros2/%s/COLCON_IGNORE' % (subdir) for subdir in build_ignore
     ] +
     [
         'echo "# END SECTION"',
@@ -199,49 +199,49 @@ parameters = [
     'builder_shell',
     script='\n'.join([
         '# monitor all subprocesses and enforce termination',
-        'python3 -u $WORKSPACE/ros_buildfarm/scripts/subprocess_reaper.py $$ --cid-file $WORKSPACE/docker_colcon_build/docker.cid > $WORKSPACE/docker_colcon_build/subprocess_reaper.log 2>&1 &',
+        'python3 -u $WORKSPACE/ros_buildfarm/scripts/subprocess_reaper.py $$ --cid-file $WORKSPACE/docker_build_and_test/docker.cid > $WORKSPACE/docker_build_and_test/subprocess_reaper.log 2>&1 &',
         '# sleep to give python time to startup',
         'sleep 1',
         '',
-        'echo "# BEGIN SECTION: Build Dockerfile - colcon build"',
-        '# build and run colcon_build Dockerfile',
-        'cd $WORKSPACE/docker_colcon_build',
+        'echo "# BEGIN SECTION: Build Dockerfile - build and test"',
+        '# build and run build and test Dockerfile',
+        'cd $WORKSPACE/docker_build_and_test',
         'python3 -u $WORKSPACE/ros_buildfarm/scripts/misc/docker_pull_baseimage.py',
-        'docker build --force-rm -t ci_colcon_build.%s .' % (rosdistro_name),
+        'docker build --force-rm -t ci_build_and_test.%s .' % (rosdistro_name),
         'echo "# END SECTION"',
         '',
         'echo "# BEGIN SECTION: ccache stats (before)"',
         'docker run' +
         ' --rm ' +
-        ' --cidfile=$WORKSPACE/docker_colcon_build/docker_ccache_before.cid' +
+        ' --cidfile=$WORKSPACE/docker_build_and_test/docker_ccache_before.cid' +
         ' -e CCACHE_DIR=/home/buildfarm/.ccache' +
         ' -v $HOME/.ccache:/home/buildfarm/.ccache' +
-        ' ci_colcon_build.%s' % (rosdistro_name) +
+        ' ci_build_and_test.%s' % (rosdistro_name) +
         ' "ccache -s"',
         'echo "# END SECTION"',
         '',
-        'echo "# BEGIN SECTION: Run Dockerfile - colcon build"',
-        'rm -fr $WORKSPACE/colcon_workspace/test_results',
-        'mkdir -p $WORKSPACE/colcon_workspace/test_results',
+        'echo "# BEGIN SECTION: Run Dockerfile - build and test"',
+        'rm -fr $WORKSPACE/ws/test_results',
+        'mkdir -p $WORKSPACE/ws/test_results',
         'docker run' +
         ' --rm ' +
-        ' --cidfile=$WORKSPACE/docker_colcon_build/docker.cid' +
+        ' --cidfile=$WORKSPACE/docker_build_and_test/docker.cid' +
         ' -e CCACHE_DIR=/home/buildfarm/.ccache' +
         ' -v $HOME/.ccache:/home/buildfarm/.ccache' +
         ' -v $WORKSPACE/ros_buildfarm:/tmp/ros_buildfarm:ro' +
-        ' -v $WORKSPACE/colcon_workspace:/tmp/colcon_workspace' +
+        ' -v $WORKSPACE/ws:/tmp/ws' +
         ' -v $WORKSPACE/underlay/ros2-linux:/tmp/parent_ws' +
-        ' ci_colcon_build.%s' % (rosdistro_name),
+        ' ci_build_and_test.%s' % (rosdistro_name),
         'cd -',  # restore pwd when used in scripts
         'echo "# END SECTION"',
         '',
         'echo "# BEGIN SECTION: ccache stats (after)"',
         'docker run' +
         ' --rm ' +
-        ' --cidfile=$WORKSPACE/docker_colcon_build/docker_ccache_after.cid' +
+        ' --cidfile=$WORKSPACE/docker_build_and_test/docker_ccache_after.cid' +
         ' -e CCACHE_DIR=/home/buildfarm/.ccache' +
         ' -v $HOME/.ccache:/home/buildfarm/.ccache' +
-        ' ci_colcon_build.%s' % (rosdistro_name) +
+        ' ci_build_and_test.%s' % (rosdistro_name) +
         ' "ccache -s"',
         'echo "# END SECTION"',
     ]),
@@ -250,7 +250,7 @@ parameters = [
     'builder_shell',
     script='\n'.join([
         'echo "# BEGIN SECTION: Compress install space"',
-        'tar -cjf $WORKSPACE/ros2-%s-linux-%s-%s-ci.tar.bz2 -C $WORKSPACE/colcon_workspace --transform "s/^install_merged/ros2-linux/" install_merged' % (rosdistro_name, os_code_name, arch),
+        'tar -cjf $WORKSPACE/ros2-%s-linux-%s-%s-ci.tar.bz2 -C $WORKSPACE/ws --transform "s/^install_merged/ros2-linux/" install_merged' % (rosdistro_name, os_code_name, arch),
         'echo "# END SECTION"',
     ]),
 ))@
@@ -259,8 +259,8 @@ parameters = [
     script='\n'.join([
         'if [ "$skip_cleanup" = "false" ]; then',
         'echo "# BEGIN SECTION: Clean up to save disk space on agents"',
-        'rm -fr colcon_workspace/build',
-        'rm -fr colcon_workspace/install_merged',
+        'rm -fr ws/build',
+        'rm -fr ws/install_merged',
         'echo "# END SECTION"',
         'fi',
     ]),
@@ -288,7 +288,7 @@ parameters = [
 ))@
 @(SNIPPET(
     'publisher_xunit',
-    pattern='colcon_workspace/test_results/**/*.xml',
+    pattern='ws/test_results/**/*.xml',
 ))@
 @(SNIPPET(
     'publisher_groovy-postbuild',

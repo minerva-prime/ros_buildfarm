@@ -78,10 +78,10 @@ ENTRYPOINT ["sh", "-c"]
 @{
 cmd = \
     'PYTHONPATH=/tmp/ros_buildfarm:$PYTHONPATH python3 -u' + \
-    ' /tmp/ros_buildfarm/scripts/ci/colcon_build.py' + \
-    ' --workspace-root /tmp/colcon_workspace' + \
+    ' /tmp/ros_buildfarm/scripts/devel/build_and_test.py' + \
     ' --rosdistro-name ' + rosdistro_name + \
-    ' --testing' + \
+    ' --build-tool colcon' + \
+    ' --workspace-root /tmp/ws' + \
     ' --parent-result-space ' + ' '.join(parent_result_space)
 }@
 CMD ["@(cmd)"]

@@ -25,7 +25,7 @@ from ros_buildfarm.workspace import ensure_workspace_exists
 
 def main(argv=sys.argv[1:]):
     parser = argparse.ArgumentParser(
-        description="Create a colcon workspace from vcs repos files.")
+        description="Create a workspace from vcs repos files.")
     parser.add_argument(
         '--workspace-root',
         help='The path of the desired workspace',
