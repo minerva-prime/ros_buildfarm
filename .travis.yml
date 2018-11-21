@@ -5,7 +5,7 @@ sudo: false
 env:
   global:
     - CONFIG_URL=https://raw.githubusercontent.com/ros-infrastructure/ros_buildfarm_config/production/index.yaml
-    - CONFIG2_URL=https://raw.githubusercontent.com/ros2/ros_buildfarm_config/ros2/index.yaml
+    - CONFIG2_URL=https://raw.githubusercontent.com/cottsay/ros_buildfarm_config/cottsay-testfarm/index.yaml
     - ROS_DISTRO_NAME=kinetic
     - ROS2_DISTRO_NAME=bouncy
     - OS_NAME=ubuntu
@@ -47,6 +47,22 @@ matrix:
         - generate_prerelease_script.py $CONFIG2_URL $ROS2_DISTRO_NAME default $OS_NAME $OS_CODE_NAME2 $ARCH $UNDERLAY_REPOSITORY_NAMES --pkg $OVERLAY_PACKAGE_NAMES --output-dir .
         - . prerelease.sh -y
         - (exit $test_result_RC_underlay) && (exit $test_result_RC_overlay)
+    - language: python
+      python: "3.6"
+      sudo: required
+      services:
+        - docker
+      env: JOB_TYPE=ci 
+      before_script:
+        # install colcon for test results
+        - pip install colcon-core colcon-test-result
+        - python setup.py install
+        - mkdir job && cd job
+        - ln -s .. ros_buildfarm
+      script:
+        - generate_ci_script.py $CONFIG2_URL $ROS2_DISTRO_NAME default $OS_NAME $OS_CODE_NAME2 $ARCH > job.sh
+        - . job.sh -y
+        - (exit $test_result_RC)
     - language: python
       python: "3.6"
       sudo: required
