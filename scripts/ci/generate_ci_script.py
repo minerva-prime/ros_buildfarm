@@ -78,12 +78,17 @@ def main(argv=sys.argv[1:]):
                         ' --build-tool ' + args.build_tool)
                 self.scripts.append(script)
             if template_path.endswith('/snippet/property_parameters-definition.xml.em'):
-                for parameter in kwargs['locals']['parameters']:
+                for parameter in reversed(kwargs['locals']['parameters']):
                     value_type = parameter['type']
                     if value_type in ['string', 'text']:
-                        name = parameter['name']
                         default_value = parameter['default_value']
-                        self.parameters[name] = default_value
+                    elif value_type is 'boolean':
+                        default_value = 'true' if parameter.get('default_value', False) else 'false'
+                    else:
+                        continue
+
+                    name = parameter['name']
+                    self.parameters.setdefault(name, default_value)
 
     hook = IncludeHook()
     from ros_buildfarm import templates
