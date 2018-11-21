@@ -256,6 +256,7 @@ def _get_ci_job_config(
         'os_code_name': os_code_name,
         'arch': arch,
         'repository_args': repository_args,
+        'build_tool': build_file.build_tool,
 
         'timeout_minutes': build_file.jenkins_job_timeout,
 

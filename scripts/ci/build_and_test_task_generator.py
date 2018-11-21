@@ -22,6 +22,7 @@ from apt import Cache
 
 from ros_buildfarm.argument import \
     add_argument_distribution_repository_key_files
+from ros_buildfarm.argument import add_argument_build_tool
 from ros_buildfarm.argument import add_argument_distribution_repository_urls
 from ros_buildfarm.argument import add_argument_dockerfile_dir
 from ros_buildfarm.common import get_binary_package_versions
@@ -56,26 +57,18 @@ def main(argv=sys.argv[1:]):
         help="The architecture (e.g. 'amd64')")
     add_argument_distribution_repository_urls(parser)
     add_argument_distribution_repository_key_files(parser)
+    add_argument_build_tool(parser, required=True)
     add_argument_dockerfile_dir(parser)
     args = parser.parse_args(argv)
 
     debian_pkg_names = [
         'build-essential',
-        'python3-colcon-core',
-        'python3-colcon-defaults',
-        'python3-colcon-library-path',
-        'python3-colcon-metadata',
-        'python3-colcon-output',
-        'python3-colcon-package-information',
-        'python3-colcon-package-selection',
-        'python3-colcon-parallel-executor',
-        'python3-colcon-powershell',
-        'python3-colcon-python-setup-py',
-        'python3-colcon-recursive-crawl',
-        'python3-colcon-test-result',
-        'python3-colcon-cmake',
-        'python3-colcon-ros',
     ]
+    if args.build_tool == 'colcon':
+        debian_pkg_names += [
+            'python3-colcon-ros',
+            'python3-colcon-test-result',
+        ]
     print('Always install the following generic dependencies:')
     for debian_pkg_name in sorted(debian_pkg_names):
         print('  -', debian_pkg_name)
@@ -97,6 +90,7 @@ def main(argv=sys.argv[1:]):
             args.distribution_repository_key_files),
 
         'uid': get_user_id(),
+        'build_tool': args.build_tool,
         'rosdistro_name': args.rosdistro_name,
 
         'dependencies': debian_pkg_names,

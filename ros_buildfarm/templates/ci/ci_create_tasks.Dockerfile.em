@@ -71,6 +71,7 @@ cmds = [
     'PYTHONPATH=/tmp/ros_buildfarm:$PYTHONPATH python3 -u' + \
     ' /tmp/ros_buildfarm/scripts/ci/build_and_test_task_generator.py' + \
     args + \
+    ' --build-tool ' + build_tool + \
     ' --dockerfile-dir /tmp/docker_build_and_test',
 ]
 }@

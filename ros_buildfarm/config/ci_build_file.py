@@ -41,6 +41,9 @@ class CIBuildFile(BuildFile):
             self.build_ignore = data['build_ignore']
             assert isinstance(self.build_ignore, list)
 
+        self.build_tool = data.get('build_tool', 'catkin_make_isolated')
+        assert self.build_tool in ('catkin_make_isolated', 'colcon')
+
         self.jenkins_job_label = None
         if 'jenkins_job_label' in data:
             self.jenkins_job_label = data['jenkins_job_label']

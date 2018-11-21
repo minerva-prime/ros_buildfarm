@@ -80,7 +80,7 @@ cmd = \
     'PYTHONPATH=/tmp/ros_buildfarm:$PYTHONPATH python3 -u' + \
     ' /tmp/ros_buildfarm/scripts/devel/build_and_test.py' + \
     ' --rosdistro-name ' + rosdistro_name + \
-    ' --build-tool colcon' + \
+    ' --build-tool ' + build_tool + \
     ' --workspace-root /tmp/ws' + \
     ' --parent-result-space ' + ' '.join(parent_result_space)
 }@

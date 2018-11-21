@@ -123,6 +123,7 @@ parameters = [
         ' ' + os_code_name +
         ' ' + arch +
         ' ' + ' '.join(repository_args) +
+        ' --build-tool ' + build_tool +
         ' --repos-file-urls $repos_files' +
         ' --dockerfile-dir $WORKSPACE/docker_generating_dockers' +
         ' --skip-rosdep-keys ' + ' '.join(skip_rosdep_keys),
@@ -169,6 +170,7 @@ parameters = [
         'echo "# BEGIN SECTION: Run Dockerfile - create workspace"',
         'rm -fr $WORKSPACE/ws/src',
         'mkdir -p $WORKSPACE/ws/src',
+        'mkdir -p $WORKSPACE/underlay/ros2-linux',
         'docker run' +
         ' --rm ' +
         ' --cidfile=$WORKSPACE/docker_create_workspace/docker.cid' +
@@ -211,6 +213,7 @@ parameters = [
         'echo "# END SECTION"',
         '',
         'echo "# BEGIN SECTION: ccache stats (before)"',
+        'mkdir -p $HOME/.ccache',
         'docker run' +
         ' --rm ' +
         ' --cidfile=$WORKSPACE/docker_build_and_test/docker_ccache_before.cid' +
