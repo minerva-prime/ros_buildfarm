@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import subprocess
+
 
 def import_repositories(source_space, repository_file, target_branch):
     cmd = ['vcs', 'import', source_space, '--force', '--retry', '5', '--input', repository_file]
@@ -23,11 +23,13 @@ def import_repositories(source_space, repository_file, target_branch):
         cmd = ['vcs', 'custom', source_space, '--git', '--args', 'checkout', '-b', '__ci_default']
         subprocess.check_call(cmd)
 
-        cmd = ['vcs', 'custom', source_space, '--args', 'checkout', '-b', target_branch, '--track', 'origin/%s' % target_branch]
+        cmd = ['vcs', 'custom', source_space, '--args', 'checkout',
+               '-b', target_branch, '--track', 'origin/%s' % target_branch]
         subprocess.call(cmd)
 
         cmd = ['vcs', 'custom', source_space, '--git', '--args', 'merge', '__ci_default']
         subprocess.check_call(cmd)
+
 
 def export_repositories(source_space):
     cmd = ['vcs', 'export', '--exact', source_space]

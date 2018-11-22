@@ -23,6 +23,7 @@ from ros_buildfarm.common import Scope
 from ros_buildfarm.vcs import import_repositories, export_repositories
 from ros_buildfarm.workspace import ensure_workspace_exists
 
+
 def main(argv=sys.argv[1:]):
     parser = argparse.ArgumentParser(
         description="Create a workspace from vcs repos files.")
@@ -61,5 +62,3 @@ def main(argv=sys.argv[1:]):
 
 if __name__ == '__main__':
     sys.exit(main())
-
-

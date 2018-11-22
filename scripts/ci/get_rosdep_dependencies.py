@@ -15,14 +15,12 @@
 # limitations under the License.
 
 import argparse
-import os
 import sys
 
 from apt import Cache
 from catkin_pkg.packages import find_packages
 from ros_buildfarm.common import get_binary_package_versions
 from ros_buildfarm.common import Scope
-from ros_buildfarm.workspace import ensure_workspace_exists
 from rosdep2 import create_default_installer_context
 from rosdep2.catkin_support import get_catkin_view
 from rosdep2.catkin_support import resolve_for_os
@@ -31,7 +29,7 @@ from rosdep2.catkin_support import resolve_for_os
 def main(argv=sys.argv[1:]):
     parser = argparse.ArgumentParser(
         description="Lists available binary packages and versions which are"
-            "needed to satisfy rosdep keys for ROS packages in the workspace")
+                    "needed to satisfy rosdep keys for ROS packages in the workspace")
     parser.add_argument(
         '--rosdistro-name',
         required=True,
@@ -94,24 +92,28 @@ def main(argv=sys.argv[1:]):
 
         # get build dependencies and map them to binary packages
         dependency_keys = get_dependencies(
-            set(pkgs.values()).union(parent_pkgs.values()), 'build', _get_build_and_recursive_run_dependencies)
+            set(pkgs.values()).union(parent_pkgs.values()),
+            'build', _get_build_and_recursive_run_dependencies)
 
         if args.testing:
             # get run and test dependencies and map them to binary packages
             dependency_keys += get_dependencies(
                 pkgs.values(), 'run and test', _get_run_and_test_dependencies)
 
-        debian_pkg_names = resolve_names(dependency_keys.difference(args.skip_rosdep_keys), **context)
+        debian_pkg_names = resolve_names(
+                dependency_keys.difference(args.skip_rosdep_keys),
+                **context)
 
-        ## Workarounds for build
+        # Workarounds for build
 
         # TODO(cottsay): Deps for fastrtps
         debian_pkg_names.update(['libasio-dev', 'libtinyxml2-dev'])
 
-        ## Workarounds for test
+        # Workarounds for test
 
         # TODO(cottsay): Deps for various ament packages
-        debian_pkg_names.update(['libxml2-utils', 'python3-flake8', 'python3-pep8', 'python3-pydocstyle'])
+        debian_pkg_names.update(['libxml2-utils', 'python3-flake8',
+                                 'python3-pep8', 'python3-pydocstyle'])
 
         # TODO(cottsay): osrf_pycommon
         debian_pkg_names.update(['python3-mock'])
@@ -119,6 +121,8 @@ def main(argv=sys.argv[1:]):
         # TODO(cottsay): ??
         debian_pkg_names.update(['cppcheck'])
 
+        # TODO(cottsay): Needed for some ROS1 tests
+        debian_pkg_names.update(['python-mock'])
 
     with Scope('SUBSECTION', 'Resolving packages versions using apt cache'):
         apt_cache = Cache()
