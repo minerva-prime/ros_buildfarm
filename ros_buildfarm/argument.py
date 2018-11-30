@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import os
 
 
@@ -296,3 +297,18 @@ def add_argument_ros_version(parser):
     parser.add_argument(
         '--ros-version', type=int, required=True,
         help='The major ROS version')
+
+
+def check_len_action(minargs, maxargs):
+    class CheckLength(argparse.Action):
+        def __call__(self, parser, args, values, option_string=None):
+            if len(values) < minargs:
+                raise argparse.ArgumentError(
+                        argument=self,
+                        message="expected at least %s arguments" % (minargs))
+            elif len(values) > maxargs:
+                raise argparse.ArgumentError(
+                        argument=self,
+                        message="expected at most %s arguments" % (minargs))
+            setattr(args, self.dest, values)
+    return CheckLength
