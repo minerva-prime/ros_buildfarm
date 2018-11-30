@@ -104,6 +104,8 @@ def main(argv=sys.argv[1:]):
         'repos_file_urls': args.repos_file_urls,
 
         'skip_rosdep_keys': args.skip_rosdep_keys,
+
+        'workspace_root': args.workspace_root,
     }
     create_dockerfile(
         'ci/create_workspace.Dockerfile.em', data, args.dockerfile_dir)
@@ -111,9 +113,6 @@ def main(argv=sys.argv[1:]):
     # output hints about necessary volumes to mount
     ros_buildfarm_basepath = os.path.normpath(
         os.path.join(os.path.dirname(__file__), '..', '..'))
-    print('Mount the following volumes when running the container:')
-    print('  -v %s:/tmp/ros_buildfarm:ro' % ros_buildfarm_basepath)
-    print('  -v %s:/tmp/workspace' % args.workspace_root[-1])
 
 
 if __name__ == '__main__':

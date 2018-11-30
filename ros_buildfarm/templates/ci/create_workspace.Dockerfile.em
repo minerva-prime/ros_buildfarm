@@ -1,4 +1,7 @@
 # generated from @template_name
+@{
+import os
+}@
 
 @(TEMPLATE(
     'snippet/from_base_image.Dockerfile.em',
@@ -73,18 +76,17 @@ cmds = [
 
     'PYTHONPATH=/tmp/ros_buildfarm:$PYTHONPATH python3 -u' + \
     ' /tmp/ros_buildfarm/scripts/ci/create_workspace.py' + \
-    ' --workspace-root /tmp/ws' + \
+    ' --workspace-root ' + workspace_root[-1] + \
     ' --repos-file-urls ' + ' '.join(repos_file_urls),
 
     'PYTHONPATH=/tmp/ros_buildfarm:$PYTHONPATH python3 -u' + \
     ' /tmp/ros_buildfarm/scripts/ci/get_rosdep_dependencies.py' + \
-    ' --package-root /tmp/ws/src' + \
+    ' --workspace-root ' + ' '.join(workspace_root) + \
     ' --os-name ' + os_name + \
     ' --os-code-name ' + os_code_name + \
     ' --rosdistro-name ' + rosdistro_name + \
-    ' --output-file /tmp/ws/install_list.txt' + \
-    ' --skip-rosdep-keys ' + ' '.join(skip_rosdep_keys) + \
-    ' --parent-package-root /tmp/parent_ws/share',
+    ' --output-file ' + os.path.join(workspace_root[-1], 'install_list.txt') + \
+    ' --skip-rosdep-keys ' + ' '.join(skip_rosdep_keys),
 ]
 }@
 CMD ["@(' && '.join(cmds))"]

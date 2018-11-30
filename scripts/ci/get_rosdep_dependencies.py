@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import argparse
+import os
 import sys
 
 from apt import Cache
@@ -36,9 +37,9 @@ def main(argv=sys.argv[1:]):
         help='The name of the ROS distro to identify the setup file to be '
              'sourced')
     parser.add_argument(
-        '--package-root',
-        required=True,
-        help='The root directory containing the packages to inspect')
+        '--workspace-root',
+        nargs='+',
+        help='The root path of the workspace to compile')
     parser.add_argument(
         '--parent-package-root', nargs='*',
         help='The paths of the parent result spaces')
@@ -69,8 +70,11 @@ def main(argv=sys.argv[1:]):
     with Scope('SUBSECTION', 'Enumerating packages needed to build'):
         # find all of the parent packages
         parent_pkgs = {}
-        for package_root in args.parent_package_root or []:
-            print("Crawling for packages in workspace '%s'" % package_root)
+        for underlay_ws in args.workspace_root[0:-1]:
+            package_root = os.path.join(underlay_ws, 'src')
+            print("Crawling for packages in '%s'" % package_root)
+            if not os.path.isdir(package_root):
+                package_root = os.path.join(underlay_ws, 'install_isolated', 'share')
             parent_pkgs.update(find_packages(package_root))
 
         parent_pkg_names = [pkg.name for pkg in parent_pkgs.values()]
@@ -79,8 +83,9 @@ def main(argv=sys.argv[1:]):
             print('  -', pkg_name)
 
         # get direct build dependencies
-        print("Crawling for packages in workspace '%s'" % args.package_root)
-        pkgs = find_packages(args.package_root)
+        package_root = os.path.join(args.workspace_root[-1], 'src')
+        print("Crawling for packages in '%s'" % package_root)
+        pkgs = find_packages(package_root)
 
         pkg_names = [pkg.name for pkg in pkgs.values()]
         print("Found the following packages:")

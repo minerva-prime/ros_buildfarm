@@ -25,6 +25,9 @@ from ros_buildfarm.argument import \
 from ros_buildfarm.argument import add_argument_build_tool
 from ros_buildfarm.argument import add_argument_distribution_repository_urls
 from ros_buildfarm.argument import add_argument_dockerfile_dir
+from ros_buildfarm.argument import add_argument_env_vars
+from ros_buildfarm.argument import add_argument_ros_version
+from ros_buildfarm.argument import check_len_action
 from ros_buildfarm.common import get_binary_package_versions
 from ros_buildfarm.common import get_distribution_repository_keys
 from ros_buildfarm.common import get_user_id
@@ -35,14 +38,15 @@ def main(argv=sys.argv[1:]):
     parser = argparse.ArgumentParser(
         description="Generate a 'Dockerfile' for the CI job")
     parser.add_argument(
-        '--workspace-root',
-        nargs='+',
-        help='The root path of the workspace to compile')
-    parser.add_argument(
         '--rosdistro-name',
         required=True,
         help='The name of the ROS distro to identify the setup file to be '
-             'sourced (if available)')
+             'sourced')
+    parser.add_argument(
+        '--workspace-root',
+        nargs='*',
+        action=check_len_action(1, 2),
+        help='The root path of the workspace to compile')
     parser.add_argument(
         '--os-name',
         required=True,
@@ -58,25 +62,30 @@ def main(argv=sys.argv[1:]):
     add_argument_distribution_repository_urls(parser)
     add_argument_distribution_repository_key_files(parser)
     add_argument_build_tool(parser, required=True)
+    add_argument_ros_version(parser)
+    add_argument_env_vars(parser)
     add_argument_dockerfile_dir(parser)
     args = parser.parse_args(argv)
 
-    debian_pkg_names = [
+    apt_cache = Cache()
+
+    debian_pkg_names = set([
         'build-essential',
-    ]
+        'python3',
+    ])
     if args.build_tool == 'colcon':
-        debian_pkg_names += [
+        debian_pkg_names |= set([
             'python3-colcon-ros',
             'python3-colcon-test-result',
-        ]
+        ])
     print('Always install the following generic dependencies:')
     for debian_pkg_name in sorted(debian_pkg_names):
         print('  -', debian_pkg_name)
 
-    # get versions for build dependencies
-    apt_cache = Cache()
-    debian_pkg_versions = get_binary_package_versions(
-        apt_cache, debian_pkg_names)
+    install_list_foundation = 'install_list_foundation.txt'
+    write_install_list(os.path.join(args.dockerfile_dir, install_list_foundation),
+            debian_pkg_names, apt_cache)
+    install_lists = [install_list_foundation, 'install_list.txt']
 
     # generate Dockerfile
     data = {
@@ -89,24 +98,40 @@ def main(argv=sys.argv[1:]):
             args.distribution_repository_urls,
             args.distribution_repository_key_files),
 
-        'uid': get_user_id(),
-        'build_tool': args.build_tool,
         'rosdistro_name': args.rosdistro_name,
 
-        'dependencies': debian_pkg_names,
-        'dependency_versions': debian_pkg_versions,
+        'uid': get_user_id(),
 
-        'parent_result_space': ['/tmp/parent_ws'],
+        'build_tool': args.build_tool,
+        'ros_version': args.ros_version,
+
+        'build_environment_variables': args.env_vars,
+
+        'install_lists': install_lists,
+
+        'testing': True,
+        'prerelease_overlay': len(args.workspace_root) > 1,
     }
     create_dockerfile(
-        'ci/build_and_test.Dockerfile.em', data, args.dockerfile_dir)
+        'devel/devel_task.Dockerfile.em', data, args.dockerfile_dir)
 
     # output hints about necessary volumes to mount
     ros_buildfarm_basepath = os.path.normpath(
         os.path.join(os.path.dirname(__file__), '..', '..'))
     print('Mount the following volumes when running the container:')
     print('  -v %s:/tmp/ros_buildfarm:ro' % ros_buildfarm_basepath)
-    print('  -v %s:/tmp/workspace' % args.workspace_root[-1])
+    if len(args.workspace_root) == 1:
+        print('  -v %s:/tmp/ws' % args.workspace_root[0])
+    else:
+        print('  -v %s:/tmp/ws' % args.workspace_root[0])
+        print('  -v %s:/tmp/ws_overlay' % args.workspace_root[1])
+
+
+def write_install_list(install_list_path, debian_pkg_names, apt_cache):
+    debian_pkg_versions = get_binary_package_versions(apt_cache, debian_pkg_names)
+    with open(install_list_path, "w") as out_file:
+        for pkg, pkg_version in sorted(debian_pkg_versions.items()):
+            out_file.write("%s=%s\n" % (pkg, pkg_version))
 
 
 if __name__ == '__main__':

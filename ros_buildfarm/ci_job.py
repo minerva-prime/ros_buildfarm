@@ -202,7 +202,7 @@ def configure_ci_job(
         rosdistro_name, os_name, os_code_name, arch, job_type)
 
     job_config = _get_ci_job_config(
-        rosdistro_name, build_file, os_name,
+        index, rosdistro_name, build_file, os_name,
         os_code_name, arch, job_name,
         build_file.repos_files,
         underlay_source_job,
@@ -224,7 +224,7 @@ def configure_ci_view(jenkins, view_name, dry_run=False):
 
 
 def _get_ci_job_config(
-        rosdistro_name, build_file, os_name,
+        index, rosdistro_name, build_file, os_name,
         os_code_name, arch, job_name,
         repos_files, underlay_source_job,
         trigger_timer,
@@ -234,8 +234,19 @@ def _get_ci_job_config(
     repository_args, script_generating_key_files = \
         get_repositories_and_script_generating_key_files(build_file=build_file)
 
+    build_environment_variables = []
+    if build_file.build_environment_variables:
+        build_environment_variables = [
+            '%s=%s' % (var, value)
+            for var, value in build_file.build_environment_variables.items()]
+
+    distribution_type = index.distributions[rosdistro_name] \
+        .get('distribution_type', 'ros1')
+    assert distribution_type in ('ros1', 'ros2')
+    ros_version = 1 if distribution_type == 'ros1' else 2
+
     job_data = {
-        'job_priority': 50,
+        'job_priority': build_file.jenkins_job_priority,
         'node_label': get_node_label(
             build_file.jenkins_job_label,
             get_default_node_label('%s_%s' % (
@@ -256,6 +267,8 @@ def _get_ci_job_config(
         'arch': arch,
         'repository_args': repository_args,
         'build_tool': build_file.build_tool,
+        'ros_version': ros_version,
+        'build_environment_variables': build_environment_variables,
 
         'timeout_minutes': build_file.jenkins_job_timeout,
 

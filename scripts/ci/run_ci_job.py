@@ -24,9 +24,11 @@ from ros_buildfarm.argument import \
     add_argument_distribution_repository_key_files
 from ros_buildfarm.argument import add_argument_distribution_repository_urls
 from ros_buildfarm.argument import add_argument_dockerfile_dir
+from ros_buildfarm.argument import add_argument_env_vars
 from ros_buildfarm.argument import add_argument_os_code_name
 from ros_buildfarm.argument import add_argument_os_name
 from ros_buildfarm.argument import add_argument_rosdistro_name
+from ros_buildfarm.argument import add_argument_ros_version
 from ros_buildfarm.common import get_distribution_repository_keys
 from ros_buildfarm.common import get_user_id
 from ros_buildfarm.templates import create_dockerfile
@@ -41,8 +43,10 @@ def main(argv=sys.argv[1:]):
     add_argument_arch(parser)
     add_argument_distribution_repository_urls(parser)
     add_argument_distribution_repository_key_files(parser)
-    add_argument_dockerfile_dir(parser)
     add_argument_build_tool(parser, required=True)
+    add_argument_ros_version(parser)
+    add_argument_env_vars(parser)
+    add_argument_dockerfile_dir(parser)
     parser.add_argument(
         '--repos-file-urls',
         help='URLs of repos files to import with vcs.',
@@ -53,6 +57,11 @@ def main(argv=sys.argv[1:]):
         nargs='*',
         help="The specified rosdep keys will be ignored, i.e. not resolved "
              "and not installed.")
+    parser.add_argument(
+        '--as-overlay',
+        help="If specified, the CI job will expect to build an overlay "
+             "workspace atop a pre-populated one.",
+        action='store_true')
     args = parser.parse_args(argv)
 
     data = copy.deepcopy(args.__dict__)

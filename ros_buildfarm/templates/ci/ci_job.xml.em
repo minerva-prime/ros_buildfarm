@@ -124,9 +124,12 @@ parameters = [
         ' ' + arch +
         ' ' + ' '.join(repository_args) +
         ' --build-tool ' + build_tool +
-        ' --repos-file-urls $repos_files' +
+        ' --ros-version ' + str(ros_version) +
+        ' --env-vars ' + ' '.join(build_environment_variables) +
         ' --dockerfile-dir $WORKSPACE/docker_generating_dockers' +
-        ' --skip-rosdep-keys ' + ' '.join(skip_rosdep_keys),
+        ' --repos-file-urls $repos_files' +
+        ' --skip-rosdep-keys ' + ' '.join(skip_rosdep_keys) +
+        (' --as-overlay' if underlay_source_job is not None else ''),
         'echo "# END SECTION"',
         '',
         'echo "# BEGIN SECTION: Build Dockerfile - generating CI tasks"',
@@ -170,13 +173,14 @@ parameters = [
         'echo "# BEGIN SECTION: Run Dockerfile - create workspace"',
         'rm -fr $WORKSPACE/ws/src',
         'mkdir -p $WORKSPACE/ws/src',
-        'mkdir -p $WORKSPACE/underlay/ros2-linux',
+        'mkdir -p $WORKSPACE/underlay/ros%d-linux' % (ros_version),
         'docker run' +
         ' --rm ' +
         ' --cidfile=$WORKSPACE/docker_create_workspace/docker.cid' +
         ' -v $WORKSPACE/ros_buildfarm:/tmp/ros_buildfarm:ro' +
-        ' -v $WORKSPACE/ws:/tmp/ws' +
-        ' -v $WORKSPACE/underlay/ros2-linux:/tmp/parent_ws' +
+        (' -v $WORKSPACE/ws:/tmp/ws' if underlay_source_job is None else \
+         ' -v $WORKSPACE/underlay/ros%d-linux:/tmp/ws/install_isolated' % (ros_version) +
+         ' -v $WORKSPACE/ws:/tmp/ws_overlay') +
         ' ci_create_workspace.%s' % (rosdistro_name),
         'cd -',  # restore pwd when used in scripts
         'echo "# END SECTION"',
@@ -191,7 +195,7 @@ parameters = [
         'echo "# BEGIN SECTION: Ignore some packages"',
     ] +
     [
-        'touch $WORKSPACE/ws/src/ros2/%s/COLCON_IGNORE' % (subdir) for subdir in build_ignore
+        'touch $WORKSPACE/ws/src/%s/COLCON_IGNORE' % (subdir) for subdir in build_ignore
     ] +
     [
         'echo "# END SECTION"',
@@ -232,8 +236,9 @@ parameters = [
         ' -e CCACHE_DIR=/home/buildfarm/.ccache' +
         ' -v $HOME/.ccache:/home/buildfarm/.ccache' +
         ' -v $WORKSPACE/ros_buildfarm:/tmp/ros_buildfarm:ro' +
-        ' -v $WORKSPACE/ws:/tmp/ws' +
-        ' -v $WORKSPACE/underlay/ros2-linux:/tmp/parent_ws' +
+        (' -v $WORKSPACE/ws:/tmp/ws' if underlay_source_job is None else \
+         ' -v $WORKSPACE/underlay/ros%d-linux:/tmp/ws/install_isolated' % (ros_version) +
+         ' -v $WORKSPACE/ws:/tmp/ws_overlay') +
         ' ci_build_and_test.%s' % (rosdistro_name),
         'cd -',  # restore pwd when used in scripts
         'echo "# END SECTION"',
@@ -253,7 +258,10 @@ parameters = [
     'builder_shell',
     script='\n'.join([
         'echo "# BEGIN SECTION: Compress install space"',
-        'tar -cjf $WORKSPACE/ros2-%s-linux-%s-%s-ci.tar.bz2 -C $WORKSPACE/ws --transform "s/^install_isolated/ros2-linux/" install_isolated' % (rosdistro_name, os_code_name, arch),
+        'tar -cjf $WORKSPACE/ros%d-%s-linux-%s-%s-ci.tar.bz2 ' % (ros_version, rosdistro_name, os_code_name, arch) +
+        ' -C $WORKSPACE/ws' +
+        ' --transform "s/^install_isolated/ros%d-linux/"' % (ros_version) +
+        ' install_isolated',
         'echo "# END SECTION"',
     ]),
 ))@
@@ -286,7 +294,7 @@ parameters = [
 @(SNIPPET(
     'archive_artifacts',
     artifacts=[
-      'ros2-%s-linux-%s-%s-ci.tar.bz2' % (rosdistro_name, os_code_name, arch),
+      'ros%d-%s-linux-%s-%s-ci.tar.bz2' % (ros_version, rosdistro_name, os_code_name, arch),
     ],
 ))@
 @(SNIPPET(

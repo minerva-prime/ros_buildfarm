@@ -47,6 +47,9 @@ class CIBuildFile(BuildFile):
         self.jenkins_job_label = None
         if 'jenkins_job_label' in data:
             self.jenkins_job_label = data['jenkins_job_label']
+        self.jenkins_job_priority = None
+        if 'jenkins_job_priority' in data:
+            self.jenkins_job_priority = int(data['jenkins_job_priority'])
         self.jenkins_job_schedule = None
         if 'jenkins_job_schedule' in data:
             self.jenkins_job_schedule = data['jenkins_job_schedule']

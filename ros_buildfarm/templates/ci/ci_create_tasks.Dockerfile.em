@@ -51,9 +51,11 @@ USER buildfarm
 
 ENTRYPOINT ["sh", "-c"]
 @{
-workspace_root = '/tmp/workspace'
+workspace_root = ['/tmp/ws']
+if as_overlay:
+    workspace_root += ['/tmp/ws_overlay']
 args = \
-    ' --workspace-root ' + workspace_root + \
+    ' --workspace-root ' + ' '.join(workspace_root) + \
     ' --rosdistro-name ' + rosdistro_name + \
     ' --os-name ' + os_name + \
     ' --os-code-name ' + os_code_name + \
@@ -72,6 +74,8 @@ cmds = [
     ' /tmp/ros_buildfarm/scripts/ci/build_and_test_task_generator.py' + \
     args + \
     ' --build-tool ' + build_tool + \
+    ' --ros-version ' + str(ros_version) + \
+    ' --env-vars ' + ' ' .join(env_vars) + \
     ' --dockerfile-dir /tmp/docker_build_and_test',
 ]
 }@
