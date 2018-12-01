@@ -74,6 +74,8 @@ RUN python3 -u /tmp/wrapper_scripts/apt.py update-install-clean -q -y ccache
     install_lists=install_lists,
 ))@
 
+RUN update-ccache-symlinks
+
 USER buildfarm
 ENTRYPOINT ["sh", "-c"]
 @{
