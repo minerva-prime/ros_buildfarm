@@ -68,6 +68,7 @@ def call_build_tool(
             cmd += ['--build-base', 'build_isolated']
             cmd += ['--install-base', 'install_isolated']
             cmd += ['--test-result-base', 'test_results']
+            cmd += ['--merge-install']
 
     if force_cmake:
         if build_tool == 'catkin_make_isolated':
