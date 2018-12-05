@@ -53,10 +53,10 @@ def main(argv=sys.argv[1:]):
         nargs='*',
         required=True)
     parser.add_argument(
-        '--skip-rosdep-keys',
+        '--build-ignore',
         nargs='*',
-        help="The specified rosdep keys will be ignored, i.e. not resolved "
-             "and not installed.")
+        help="The specified package(s) will be ignored, i.e. not built, "
+             "tested, or installed.")
     parser.add_argument(
         '--as-overlay',
         help="If specified, the CI job will expect to build an overlay "

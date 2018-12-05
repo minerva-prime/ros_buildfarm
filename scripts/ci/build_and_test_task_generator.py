@@ -78,6 +78,20 @@ def main(argv=sys.argv[1:]):
             'python3-colcon-ros',
             'python3-colcon-test-result',
         ])
+
+    # Workarounds for build
+
+    # TODO(cottsay): Deps for fastrtps
+    debian_pkg_names.update(['libasio-dev'])
+
+    # Workarounds for test
+
+    # TODO(cottsay): Deps for various ament packages
+    debian_pkg_names.update(['libxml2-utils', 'python3-pydocstyle'])
+
+    # TODO(cottsay): osrf_pycommon
+    debian_pkg_names.update(['python3-mock'])
+
     print('Always install the following generic dependencies:')
     for debian_pkg_name in sorted(debian_pkg_names):
         print('  -', debian_pkg_name)

@@ -63,15 +63,16 @@ def main(argv=sys.argv[1:]):
         nargs='*',
         required=True)
     parser.add_argument(
-        '--skip-rosdep-keys',
+        '--build-ignore',
         nargs='*',
-        help="The specified rosdep keys will be ignored, i.e. not resolved "
-             "and not installed.")
+        help="The specified package(s) will be ignored, i.e. not built, "
+             "tested, or installed.")
     args = parser.parse_args(argv)
 
     debian_pkg_names = [
         'git',
         'python3-apt',
+        'python3-colcon-common-extensions',
         'python3-rosdep',
         'python3-vcstool',
     ]
@@ -103,7 +104,7 @@ def main(argv=sys.argv[1:]):
 
         'repos_file_urls': args.repos_file_urls,
 
-        'skip_rosdep_keys': args.skip_rosdep_keys,
+        'build_ignore': args.build_ignore,
 
         'workspace_root': args.workspace_root,
     }

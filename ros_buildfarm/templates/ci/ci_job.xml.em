@@ -128,7 +128,7 @@ parameters = [
         ' --env-vars ' + ' '.join(build_environment_variables) +
         ' --dockerfile-dir $WORKSPACE/docker_generating_dockers' +
         ' --repos-file-urls $repos_files' +
-        ' --skip-rosdep-keys ' + ' '.join(skip_rosdep_keys) +
+        ' --build-ignore ' + ' '.join(build_ignore) +
         (' --as-overlay' if underlay_source_job is not None else ''),
         'echo "# END SECTION"',
         '',
@@ -170,6 +170,9 @@ parameters = [
         'docker build --force-rm -t ci_create_workspace.%s .' % (rosdistro_name),
         'echo "# END SECTION"',
         '',
+        '# Ensure an egg_info exists in the ros_buildfarm package (for Colcon entry points)',
+        'python3 -u $WORKSPACE/ros_buildfarm/setup.py egg_info -e $WORKSPACE/ros_buildfarm',
+        '',
         'echo "# BEGIN SECTION: Run Dockerfile - create workspace"',
         'rm -fr $WORKSPACE/ws/src',
         'mkdir -p $WORKSPACE/ws/src',
@@ -191,13 +194,6 @@ parameters = [
     script='\n'.join([
         'echo "# BEGIN SECTION: Copy dependency list"',
         '/bin/cp -f $WORKSPACE/ws/install_list.txt $WORKSPACE/docker_build_and_test/',
-        'echo "# END SECTION"',
-        'echo "# BEGIN SECTION: Ignore some packages"',
-    ] +
-    [
-        'touch $WORKSPACE/ws/src/%s/COLCON_IGNORE' % (subdir) for subdir in build_ignore
-    ] +
-    [
         'echo "# END SECTION"',
     ]),
 ))@

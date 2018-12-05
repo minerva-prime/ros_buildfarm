@@ -44,6 +44,15 @@ kwargs = {
     'description': "Build farm used to build the ROS ecosystem's packages.",
     'long_description': long_description,
     'license': 'Apache 2.0',
+    'entry_points': {
+        'colcon_core.verb': [
+            'ros-buildfarm-ignore = ros_buildfarm.colcon.verb.ignore:IgnoreVerb',
+            'ros-buildfarm-list-rosdeps = ros_buildfarm.colcon.verb.list_rosdeps:ListRosdepsVerb',
+            ],
+        'colcon_core.package_selection': [
+            'ros-buildfarm-under-directory = ros_buildfarm.colcon.package_selection.under_directory:UnderDirectoryPackageSelection',
+            ],
+        },
 }
 
 if os.sys.version_info[0] == 2:

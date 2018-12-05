@@ -79,14 +79,32 @@ cmds = [
     ' --workspace-root ' + workspace_root[-1] + \
     ' --repos-file-urls ' + ' '.join(repos_file_urls),
 
-    'PYTHONPATH=/tmp/ros_buildfarm:$PYTHONPATH python3 -u' + \
-    ' /tmp/ros_buildfarm/scripts/ci/get_rosdep_dependencies.py' + \
-    ' --workspace-root ' + ' '.join(workspace_root) + \
-    ' --os-name ' + os_name + \
-    ' --os-code-name ' + os_code_name + \
-    ' --rosdistro-name ' + rosdistro_name + \
-    ' --output-file ' + os.path.join(workspace_root[-1], 'install_list.txt') + \
-    ' --skip-rosdep-keys ' + ' '.join(skip_rosdep_keys),
+    'PYTHONPATH=/tmp/ros_buildfarm:$PYTHONPATH' + \
+    ' colcon' + \
+    ' --log-base /tmp/colcon_log ' + \
+    ' ros-buildfarm-ignore ' + \
+    ' --base-paths ' + workspace_root[-1] + \
+    ' --packages-select ' + ' '.join(build_ignore),
+
+    'PYTHONPATH=/tmp/ros_buildfarm:$PYTHONPATH' + \
+    ' colcon' + \
+    ' --log-base /tmp/colcon_log ' + \
+    ' ros-buildfarm-list-rosdeps ' + \
+    ' --testing' + \
+    ' --base-paths ' + ' '.join(workspace_root) + \
+    ' --packages-under-directory ' + workspace_root[-1] + \
+    ' > ' + os.path.join(workspace_root[-1], 'rosdep_list.txt'),
+
+    'xargs -a ' + os.path.join(workspace_root[-1], 'rosdep_list.txt') + \
+    ' rosdep resolve' + \
+    ' --rosdistro=' + rosdistro_name + \
+    ' --filter-for-installers=apt' + \
+    ' --os=%s:%s' % (os_name, os_code_name) + \
+    ' | grep -v "^#\\|^$"' + \
+    ' | sort' + \
+    ' > ' + os.path.join(workspace_root[-1], 'install_list.txt'),
+
 ]
+cmd = ' && '.join(cmds).replace('\\', '\\\\').replace('"', '\\"')
 }@
-CMD ["@(' && '.join(cmds))"]
+CMD ["@cmd"]

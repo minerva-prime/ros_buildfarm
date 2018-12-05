@@ -277,7 +277,6 @@ def _get_ci_job_config(
         'repos_files': repos_files,
 
         'build_ignore': build_file.build_ignore,
-        'skip_rosdep_keys': build_file.skip_rosdep_keys,
 
         'underlay_source_job': underlay_source_job,
         'trigger_timer': trigger_timer,

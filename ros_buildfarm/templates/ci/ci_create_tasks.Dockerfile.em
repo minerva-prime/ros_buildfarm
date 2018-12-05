@@ -68,7 +68,7 @@ cmds = [
     args + \
     ' --dockerfile-dir /tmp/docker_create_workspace' + \
     ' --repos-file-urls ' + ' '.join(repos_file_urls) + \
-    ' --skip-rosdep-keys ' + ' '.join(skip_rosdep_keys),
+    ' --build-ignore ' + ' '.join(build_ignore),
 
     'PYTHONPATH=/tmp/ros_buildfarm:$PYTHONPATH python3 -u' + \
     ' /tmp/ros_buildfarm/scripts/ci/build_and_test_task_generator.py' + \
