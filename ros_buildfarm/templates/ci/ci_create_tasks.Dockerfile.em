@@ -62,21 +62,30 @@ args = \
     ' --arch ' + arch + \
     ' --distribution-repository-urls ' + ' '.join(distribution_repository_urls) + \
     ' --distribution-repository-key-files ' + ' ' .join(['/tmp/keys/%d.key' % i for i in range(len(distribution_repository_keys))])
+build_args = args + \
+    ' --build-tool ' + build_tool + \
+    ' --ros-version ' + str(ros_version) + \
+    ' --env-vars ' + ' ' .join(env_vars) + \
+    ' --foundation-packages ' + ' '.join(foundation_packages)
 cmds = [
     'PYTHONPATH=/tmp/ros_buildfarm:$PYTHONPATH python3 -u' + \
     ' /tmp/ros_buildfarm/scripts/ci/create_workspace_task_generator.py' + \
     args + \
     ' --dockerfile-dir /tmp/docker_create_workspace' + \
     ' --repos-file-urls ' + ' '.join(repos_file_urls) + \
+    ' --skip-rosdep-keys ' + ' '.join(skip_rosdep_keys) + \
     ' --build-ignore ' + ' '.join(build_ignore),
 
     'PYTHONPATH=/tmp/ros_buildfarm:$PYTHONPATH python3 -u' + \
-    ' /tmp/ros_buildfarm/scripts/ci/build_and_test_task_generator.py' + \
-    args + \
-    ' --build-tool ' + build_tool + \
-    ' --ros-version ' + str(ros_version) + \
-    ' --env-vars ' + ' ' .join(env_vars) + \
+    ' /tmp/ros_buildfarm/scripts/ci/build_task_generator.py' + \
+    build_args + \
+    ' --testing' + \
     ' --dockerfile-dir /tmp/docker_build_and_test',
+
+    'PYTHONPATH=/tmp/ros_buildfarm:$PYTHONPATH python3 -u' + \
+    ' /tmp/ros_buildfarm/scripts/ci/build_task_generator.py' + \
+    build_args + \
+    ' --dockerfile-dir /tmp/docker_build_and_install',
 ]
 }@
 CMD ["@(' && '.join(cmds))"]

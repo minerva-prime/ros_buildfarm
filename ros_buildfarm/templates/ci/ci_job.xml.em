@@ -128,7 +128,9 @@ parameters = [
         ' --env-vars ' + ' '.join(build_environment_variables) +
         ' --dockerfile-dir $WORKSPACE/docker_generating_dockers' +
         ' --repos-file-urls $repos_files' +
+        ' --skip-rosdep-keys ' + ' '.join(skip_rosdep_keys) +
         ' --build-ignore ' + ' '.join(build_ignore) +
+        ' --foundation-packages ' + ' '.join(foundation_packages) +
         (' --as-overlay' if underlay_source_job is not None else ''),
         'echo "# END SECTION"',
         '',
@@ -140,8 +142,10 @@ parameters = [
         '',
         'echo "# BEGIN SECTION: Run Dockerfile - generating CI tasks"',
         'rm -fr $WORKSPACE/docker_create_workspace',
+        'rm -fr $WORKSPACE/docker_build_and_install',
         'rm -fr $WORKSPACE/docker_build_and_test',
         'mkdir -p $WORKSPACE/docker_create_workspace',
+        'mkdir -p $WORKSPACE/docker_build_and_install',
         'mkdir -p $WORKSPACE/docker_build_and_test',
         'docker run' +
         ' --rm ' +
@@ -149,6 +153,7 @@ parameters = [
         ' -e=HOME=/home/buildfarm' +
         ' -v $WORKSPACE/ros_buildfarm:/tmp/ros_buildfarm:ro' +
         ' -v $WORKSPACE/docker_create_workspace:/tmp/docker_create_workspace' +
+        ' -v $WORKSPACE/docker_build_and_install:/tmp/docker_build_and_install' +
         ' -v $WORKSPACE/docker_build_and_test:/tmp/docker_build_and_test' +
         ' ci_task_generation.%s' % (rosdistro_name),
         'cd -',  # restore pwd when used in scripts
@@ -159,7 +164,7 @@ parameters = [
     'builder_shell',
     script='\n'.join([
         '# monitor all subprocesses and enforce termination',
-        'python3 -u $WORKSPACE/ros_buildfarm/scripts/subprocess_reaper.py $$ --cid-file $WORKSPACE/docker_build_and_test/docker.cid > $WORKSPACE/docker_build_and_test/subprocess_reaper.log 2>&1 &',
+        'python3 -u $WORKSPACE/ros_buildfarm/scripts/subprocess_reaper.py $$ --cid-file $WORKSPACE/docker_create_workspace/docker.cid > $WORKSPACE/docker_create_workspace/subprocess_reaper.log 2>&1 &',
         '# sleep to give python time to startup',
         'sleep 1',
         '',
@@ -194,6 +199,69 @@ parameters = [
     script='\n'.join([
         'echo "# BEGIN SECTION: Copy dependency list"',
         '/bin/cp -f $WORKSPACE/ws/install_list.txt $WORKSPACE/docker_build_and_test/',
+        '/bin/cp -f $WORKSPACE/ws/install_list.txt $WORKSPACE/docker_build_and_install/',
+        'echo "# END SECTION"',
+    ]),
+))@
+@(SNIPPET(
+    'builder_shell',
+    script='\n'.join([
+        '# monitor all subprocesses and enforce termination',
+        'python3 -u $WORKSPACE/ros_buildfarm/scripts/subprocess_reaper.py $$ --cid-file $WORKSPACE/docker_build_and_install/docker.cid > $WORKSPACE/docker_build_and_install/subprocess_reaper.log 2>&1 &',
+        '# sleep to give python time to startup',
+        'sleep 1',
+        '',
+        'echo "# BEGIN SECTION: Build Dockerfile - build and install"',
+        '# build and run build and install Dockerfile',
+        'cd $WORKSPACE/docker_build_and_install',
+        'python3 -u $WORKSPACE/ros_buildfarm/scripts/misc/docker_pull_baseimage.py',
+        'docker build --force-rm -t ci_build_and_install.%s .' % (rosdistro_name),
+        'echo "# END SECTION"',
+        '',
+        'echo "# BEGIN SECTION: ccache stats (before)"',
+        'mkdir -p $HOME/.ccache',
+        'docker run' +
+        ' --rm ' +
+        ' --cidfile=$WORKSPACE/docker_build_and_install/docker_ccache_before.cid' +
+        ' -e CCACHE_DIR=/home/buildfarm/.ccache' +
+        ' -v $HOME/.ccache:/home/buildfarm/.ccache' +
+        ' ci_build_and_install.%s' % (rosdistro_name) +
+        ' "ccache -s"',
+        'echo "# END SECTION"',
+        '',
+        'echo "# BEGIN SECTION: Run Dockerfile - build and install"',
+        'docker run' +
+        ' --rm ' +
+        ' --cidfile=$WORKSPACE/docker_build_and_install/docker.cid' +
+        ' -e CCACHE_DIR=/home/buildfarm/.ccache' +
+        ' -v $HOME/.ccache:/home/buildfarm/.ccache' +
+        ' -v $WORKSPACE/ros_buildfarm:/tmp/ros_buildfarm:ro' +
+        (' -v $WORKSPACE/ws:/tmp/ws' if underlay_source_job is None else \
+         ' -v $WORKSPACE/underlay/ros%d-linux:/tmp/ws/install_isolated' % (ros_version) +
+         ' -v $WORKSPACE/ws:/tmp/ws_overlay') +
+        ' ci_build_and_install.%s' % (rosdistro_name),
+        'cd -',  # restore pwd when used in scripts
+        'echo "# END SECTION"',
+        '',
+        'echo "# BEGIN SECTION: ccache stats (after)"',
+        'docker run' +
+        ' --rm ' +
+        ' --cidfile=$WORKSPACE/docker_build_and_install/docker_ccache_after.cid' +
+        ' -e CCACHE_DIR=/home/buildfarm/.ccache' +
+        ' -v $HOME/.ccache:/home/buildfarm/.ccache' +
+        ' ci_build_and_install.%s' % (rosdistro_name) +
+        ' "ccache -s"',
+        'echo "# END SECTION"',
+    ]),
+))@
+@(SNIPPET(
+    'builder_shell',
+    script='\n'.join([
+        'echo "# BEGIN SECTION: Compress install space"',
+        'tar -cjf $WORKSPACE/ros%d-%s-linux-%s-%s-ci.tar.bz2 ' % (ros_version, rosdistro_name, os_code_name, arch) +
+        ' -C $WORKSPACE/ws' +
+        ' --transform "s/^install_isolated/ros%d-linux/"' % (ros_version) +
+        ' install_isolated',
         'echo "# END SECTION"',
     ]),
 ))@
@@ -253,20 +321,10 @@ parameters = [
 @(SNIPPET(
     'builder_shell',
     script='\n'.join([
-        'echo "# BEGIN SECTION: Compress install space"',
-        'tar -cjf $WORKSPACE/ros%d-%s-linux-%s-%s-ci.tar.bz2 ' % (ros_version, rosdistro_name, os_code_name, arch) +
-        ' -C $WORKSPACE/ws' +
-        ' --transform "s/^install_isolated/ros%d-linux/"' % (ros_version) +
-        ' install_isolated',
-        'echo "# END SECTION"',
-    ]),
-))@
-@(SNIPPET(
-    'builder_shell',
-    script='\n'.join([
         'if [ "$skip_cleanup" = "false" ]; then',
         'echo "# BEGIN SECTION: Clean up to save disk space on agents"',
-        'rm -fr ws/build',
+        'rm -fr ws/build_isolated',
+        'rm -fr ws/devel_isolated',
         'rm -fr ws/install_isolated',
         'echo "# END SECTION"',
         'fi',

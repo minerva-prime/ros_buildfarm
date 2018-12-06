@@ -63,6 +63,11 @@ def main(argv=sys.argv[1:]):
         nargs='*',
         required=True)
     parser.add_argument(
+        '--skip-rosdep-keys',
+        nargs='*',
+        help="The specified rosdep keys will be ignored, i.e. not resolved "
+             "and not installed.")
+    parser.add_argument(
         '--build-ignore',
         nargs='*',
         help="The specified package(s) will be ignored, i.e. not built, "
@@ -104,6 +109,7 @@ def main(argv=sys.argv[1:]):
 
         'repos_file_urls': args.repos_file_urls,
 
+        'skip_rosdep_keys': args.skip_rosdep_keys,
         'build_ignore': args.build_ignore,
 
         'workspace_root': args.workspace_root,

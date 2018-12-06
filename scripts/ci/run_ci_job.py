@@ -53,6 +53,11 @@ def main(argv=sys.argv[1:]):
         nargs='*',
         required=True)
     parser.add_argument(
+        '--skip-rosdep-keys',
+        nargs='*',
+        help="The specified rosdep keys will be ignored, i.e. not resolved "
+             "and not installed.")
+    parser.add_argument(
         '--build-ignore',
         nargs='*',
         help="The specified package(s) will be ignored, i.e. not built, "
@@ -62,6 +67,11 @@ def main(argv=sys.argv[1:]):
         help="If specified, the CI job will expect to build an overlay "
              "workspace atop a pre-populated one.",
         action='store_true')
+    parser.add_argument(
+        '--foundation-packages',
+        nargs='*',
+        help="The specified package(s) will be installed prior to any "
+             "packages detected for installation by rosdep.")
     args = parser.parse_args(argv)
 
     data = copy.deepcopy(args.__dict__)

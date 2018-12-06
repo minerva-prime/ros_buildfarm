@@ -44,6 +44,11 @@ class CIBuildFile(BuildFile):
         self.build_tool = data.get('build_tool', 'catkin_make_isolated')
         assert self.build_tool in ('catkin_make_isolated', 'colcon')
 
+        self.foundation_packages = []
+        if 'foundation_packages' in data:
+            self.foundation_packages = data['foundation_packages']
+            assert isinstance(self.foundation_packages, list)
+
         self.jenkins_job_label = None
         if 'jenkins_job_label' in data:
             self.jenkins_job_label = data['jenkins_job_label']
@@ -61,6 +66,11 @@ class CIBuildFile(BuildFile):
         if 'repos_files' in data:
             self.repos_files = data['repos_files']
             assert isinstance(self.repos_files, list)
+
+        self.skip_rosdep_keys = []
+        if 'skip_rosdep_keys' in data:
+            self.skip_rosdep_keys = data['skip_rosdep_keys']
+            assert isinstance(self.skip_rosdep_keys, list)
 
         self.custom_rosdep_urls = []
         if '_config' in data['targets']:

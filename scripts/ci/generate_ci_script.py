@@ -44,6 +44,9 @@ def main(argv=sys.argv[1:]):
     add_argument_os_code_name(parser)
     add_argument_arch(parser)
     add_argument_build_tool(parser)
+    parser.add_argument(
+        '--skip-cleanup', action='store_true',
+        help="Do not clean up the workspace after the job completes.")
     args = parser.parse_args(argv)
 
     # collect all template snippets of specific types
@@ -79,15 +82,18 @@ def main(argv=sys.argv[1:]):
                 self.scripts.append(script)
             if template_path.endswith('/snippet/property_parameters-definition.xml.em'):
                 for parameter in reversed(kwargs['locals']['parameters']):
+                    name = parameter['name']
                     value_type = parameter['type']
                     if value_type in ['string', 'text']:
                         default_value = parameter['default_value']
                     elif value_type is 'boolean':
-                        default_value = 'true' if parameter.get('default_value', False) else 'false'
+                        if name == 'skip_cleanup':
+                            default_value = 'true' if args.skip_cleanup else 'false'
+                        else:
+                            default_value = 'true' if parameter.get('default_value', False) else 'false'
                     else:
                         continue
 
-                    name = parameter['name']
                     self.parameters.setdefault(name, default_value)
 
     hook = IncludeHook()
@@ -118,7 +124,7 @@ def main(argv=sys.argv[1:]):
             'build_tool': args.build_tool or build_file.build_tool,
             'parameters': hook.parameters},
         options={BANGPATH_OPT: False})
-    value = value.replace('python3', sys.executable)
+    value = value.replace('python3 ', sys.executable + ' ')
     print(value)
 
 

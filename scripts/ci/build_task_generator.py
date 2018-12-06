@@ -59,6 +59,16 @@ def main(argv=sys.argv[1:]):
         '--arch',
         required=True,
         help="The architecture (e.g. 'amd64')")
+    parser.add_argument(
+        '--foundation-packages',
+        nargs='*',
+        help="The specified package(s) will be installed prior to any "
+             "packages detected for installation by rosdep.")
+    parser.add_argument(
+        '--testing',
+        action='store_true',
+        help="Generate a task for testing packages rather than installing "
+             "them.")
     add_argument_distribution_repository_urls(parser)
     add_argument_distribution_repository_key_files(parser)
     add_argument_build_tool(parser, required=True)
@@ -69,28 +79,14 @@ def main(argv=sys.argv[1:]):
 
     apt_cache = Cache()
 
-    debian_pkg_names = set([
-        'build-essential',
-        'python3',
-    ])
+    debian_pkg_names = set(args.foundation_packages)
     if args.build_tool == 'colcon':
         debian_pkg_names |= set([
+            'python3-catkin-pkg',
             'python3-colcon-ros',
             'python3-colcon-test-result',
+            'python3-rosdistro',
         ])
-
-    # Workarounds for build
-
-    # TODO(cottsay): Deps for fastrtps
-    debian_pkg_names.update(['libasio-dev'])
-
-    # Workarounds for test
-
-    # TODO(cottsay): Deps for various ament packages
-    debian_pkg_names.update(['libxml2-utils', 'python3-pydocstyle'])
-
-    # TODO(cottsay): osrf_pycommon
-    debian_pkg_names.update(['python3-mock'])
 
     print('Always install the following generic dependencies:')
     for debian_pkg_name in sorted(debian_pkg_names):
@@ -123,7 +119,7 @@ def main(argv=sys.argv[1:]):
 
         'install_lists': install_lists,
 
-        'testing': True,
+        'testing': args.testing,
         'prerelease_overlay': len(args.workspace_root) > 1,
     }
     create_dockerfile(
