@@ -40,18 +40,19 @@ class ListRosdepsVerb(VerbExtensionPoint):
             context.args, additional_argument_names=['*'])
         decorators = get_decorators(descriptors)
         package_names = set([desc.name for desc in descriptors])
-
-        select_package_decorators(context.args, decorators)
-        decorators = [dec for dec in decorators if dec.selected]
-
         add_recursive_dependencies(
-            decorators, recursive_categories=('run', ))
+            decorators,
+            direct_categories=('build', 'test') if context.args.testing else ('build', ),
+            recursive_categories=('run', ))
+        select_package_decorators(context.args, decorators)
 
+        decorators = [dec for dec in decorators if dec.selected]
         decorators = [dec for dec in decorators if dec.descriptor.type.startswith('ros.')]
 
-        rosdeps = set([])
+        rosdeps = set()
+        recursive_deps = set()
         for dec in decorators:
-            rosdeps.update(dec.recursive_dependencies)
+            recursive_deps.update(dec.recursive_dependencies)
             if 'build' in dec.descriptor.dependencies:
                 rosdeps.update(dec.descriptor.dependencies['build'])
             if context.args.testing:
@@ -59,6 +60,12 @@ class ListRosdepsVerb(VerbExtensionPoint):
                     rosdeps.update(dec.descriptor.dependencies['run'])
                 if 'test' in dec.descriptor.dependencies:
                     rosdeps.update(dec.descriptor.dependencies['test'])
+
+        for desc in descriptors:
+            if not desc.name in recursive_deps:
+                continue
+            if 'run' in desc.dependencies:
+                rosdeps.update(desc.dependencies['run'])
 
         for dep in sorted(rosdeps - package_names):
             print(dep)
