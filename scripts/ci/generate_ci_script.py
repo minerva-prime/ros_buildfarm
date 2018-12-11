@@ -47,6 +47,17 @@ def main(argv=sys.argv[1:]):
     parser.add_argument(
         '--skip-cleanup', action='store_true',
         help="Do not clean up the workspace after the job completes.")
+    parser.add_argument(
+        '--depth-before', type=int, metavar='NUM_BEFORE', default=0,
+        help='Number of forward-dependent packages upon which ' +
+             'the targeted package(s) depends.')
+    parser.add_argument(
+        '--depth-after', type=int, metavar='NUM_AFTER', default=0,
+        help='Number of reverse-dependent packages which ' +
+             'depend upon the targeted package(s).')
+    parser.add_argument(
+        '--packages-select', nargs='*', metavar='PKG_NAME',
+        help='Only process a subset of packages.')
     args = parser.parse_args(argv)
 
     # collect all template snippets of specific types
@@ -56,7 +67,13 @@ def main(argv=sys.argv[1:]):
             Hook.__init__(self)
             self.scms = []
             self.scripts = []
-            self.parameters = {}
+            self.parameters = {
+                'skip_cleanup': 'true' if args.skip_cleanup else 'false',
+                'depth_before': str(args.depth_before),
+                'depth_after': str(args.depth_after),
+                'packages_select': ' '.join(args.packages_select)
+                                   if args.packages_select else '',
+            }
 
         def beforeInclude(self, *_, **kwargs):
             template_path = kwargs['file'].name
@@ -87,10 +104,8 @@ def main(argv=sys.argv[1:]):
                     if value_type in ['string', 'text']:
                         default_value = parameter['default_value']
                     elif value_type is 'boolean':
-                        if name == 'skip_cleanup':
-                            default_value = 'true' if args.skip_cleanup else 'false'
-                        else:
-                            default_value = 'true' if parameter.get('default_value', False) else 'false'
+                        default_value = 'true' if parameter.get(
+                                'default_value', False) else 'false'
                     else:
                         continue
 

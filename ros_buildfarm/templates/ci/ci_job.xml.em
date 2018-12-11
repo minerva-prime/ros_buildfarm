@@ -34,6 +34,24 @@ parameters = [
         'default_value': ' '.join(repos_files),
         'description': 'URL(s) of repos file(s) containing the list of packages to be built (space-separated)',
     },
+    {
+        'type': 'string',
+        'name': 'packages_select',
+        'default_value': '',
+        'description': 'Package(s) to be built (space-separated), or blank for ALL',
+    },
+    {
+        'type': 'string',
+        'name': 'depth_before',
+        'default_value': '0',
+        'description': 'Number of forward dependencies of selected packages to be include in scope',
+    },
+    {
+        'type': 'string',
+        'name': 'depth_after',
+        'default_value': '0',
+        'description': 'Number of reverse dependencies of selected packages to be include in scope',
+    },
 ]
 }@
 @(SNIPPET(
@@ -131,7 +149,10 @@ parameters = [
         ' --skip-rosdep-keys ' + ' '.join(skip_rosdep_keys) +
         ' --build-ignore ' + ' '.join(build_ignore) +
         ' --foundation-packages ' + ' '.join(foundation_packages) +
-        (' --as-overlay' if underlay_source_job is not None else ''),
+        (' --as-overlay' if underlay_source_job is not None else '') +
+        ' --depth-before $depth_before' +
+        ' --depth-after $depth_after' +
+        ' --packages-select $packages_select',
         'echo "# END SECTION"',
         '',
         'echo "# BEGIN SECTION: Build Dockerfile - generating CI tasks"',

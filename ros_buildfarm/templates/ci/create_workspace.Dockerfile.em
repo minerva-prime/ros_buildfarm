@@ -89,7 +89,19 @@ cmds = [
     ' ros-buildfarm-ignore' + \
     ' --base-paths ' + workspace_root[-1] + \
     ' --packages-select ' + ' '.join(build_ignore),
-
+]
+if packages_select:
+    cmds += [
+        'PYTHONPATH=/tmp/ros_buildfarm:$PYTHONPATH' + \
+        ' colcon' + \
+        ' --log-base /tmp/colcon_log' + \
+        ' ros-buildfarm-scope' + \
+        ' %d %d' % (depth_before, depth_after) + \
+        ' --base-paths ' + workspace_root[-1] + \
+        ' --packages-select ' + ' '.join(packages_select) + \
+        ' --testing',
+    ]
+cmds += [
     'PYTHONPATH=/tmp/ros_buildfarm:$PYTHONPATH' + \
     ' colcon' + \
     ' --log-base /tmp/colcon_log' + \

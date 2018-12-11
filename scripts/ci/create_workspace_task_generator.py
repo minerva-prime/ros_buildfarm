@@ -72,6 +72,17 @@ def main(argv=sys.argv[1:]):
         nargs='*',
         help="The specified package(s) will be ignored, i.e. not built, "
              "tested, or installed.")
+    parser.add_argument(
+        '--depth-before', type=int, metavar='NUM_BEFORE', default=0,
+        help='Number of forward-dependent packages upon which ' +
+             'the targeted package(s) depends.')
+    parser.add_argument(
+        '--depth-after', type=int, metavar='NUM_AFTER', default=0,
+        help='Number of reverse-dependent packages which ' +
+             'depend upon the targeted package(s).')
+    parser.add_argument(
+        '--packages-select', nargs='*', metavar='PKG_NAME',
+        help='Only process a subset of packages.')
     args = parser.parse_args(argv)
 
     debian_pkg_names = [
@@ -111,6 +122,10 @@ def main(argv=sys.argv[1:]):
 
         'skip_rosdep_keys': args.skip_rosdep_keys,
         'build_ignore': args.build_ignore,
+
+        'depth_before': args.depth_before,
+        'depth_after': args.depth_after,
+        'packages_select': args.packages_select,
 
         'workspace_root': args.workspace_root,
     }

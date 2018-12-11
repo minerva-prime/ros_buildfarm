@@ -74,7 +74,10 @@ cmds = [
     ' --dockerfile-dir /tmp/docker_create_workspace' + \
     ' --repos-file-urls ' + ' '.join(repos_file_urls) + \
     ' --skip-rosdep-keys ' + ' '.join(skip_rosdep_keys) + \
-    ' --build-ignore ' + ' '.join(build_ignore),
+    ' --build-ignore ' + ' '.join(build_ignore) + \
+    ' --depth-before %d' % (depth_before, ) + \
+    ' --depth-after %d' % (depth_after, ) + \
+    ' --packages-select ' + ' '.join(packages_select),
 
     'PYTHONPATH=/tmp/ros_buildfarm:$PYTHONPATH python3 -u' + \
     ' /tmp/ros_buildfarm/scripts/ci/build_task_generator.py' + \
