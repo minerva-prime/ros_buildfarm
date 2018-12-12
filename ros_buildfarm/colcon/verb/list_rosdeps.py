@@ -16,9 +16,8 @@ from colcon_core.package_selection import add_arguments \
     as add_packages_arguments
 from colcon_core.package_selection import get_packages
 from colcon_core.plugin_system import satisfies_version
-from colcon_core.verb import VerbExtensionPoint
-
 from colcon_core.shell import find_installed_packages_in_environment
+from colcon_core.verb import VerbExtensionPoint
 
 
 class ListRosdepsVerb(VerbExtensionPoint):
@@ -35,7 +34,7 @@ class ListRosdepsVerb(VerbExtensionPoint):
         add_packages_arguments(parser)
 
     def main(self, *, context):
-        direct_categories = ('build', 'test') if context.args.testing else ('build', )
+        direct_categories = ('build', 'run', 'test') if context.args.testing else ('build', )
         recursive_categories = ('run', )
 
         # Decorators should be in topological order and selected based on args
@@ -44,18 +43,19 @@ class ListRosdepsVerb(VerbExtensionPoint):
             direct_categories=direct_categories,
             recursive_categories=recursive_categories)
 
-        package_names = set([pkg.descriptor.name for pkg in decorators])
-
         rosdeps = set()
-
         for pkg in reversed(decorators):
             if pkg.descriptor.type.startswith('ros.'):
+                if pkg.descriptor.name in rosdeps:
+                    rosdeps.update(pkg.descriptor.get_dependencies(categories=recursive_categories))
                 if pkg.selected:
                     rosdeps.update(pkg.descriptor.get_dependencies(categories=direct_categories))
-                elif pkg.descriptor.name in rosdeps:
-                    rosdeps.update(pkg.descriptor.get_dependencies(categories=recursive_categories))
 
-        rosdeps -= package_names
+        # Disclude packages in the workspace(s)
+        rosdeps -= set([pkg.descriptor.name for pkg in decorators])
 
-        for dep in sorted(rosdeps - package_names):
+        # Disclude installed packages
+        rosdeps -= find_installed_packages_in_environment().keys()
+
+        for dep in sorted(rosdeps):
             print(dep)

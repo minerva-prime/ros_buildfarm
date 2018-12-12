@@ -74,7 +74,8 @@ RUN sed -i "/\"has no 'setup\.py' file\" \.format_map(locals()))/{N;s/\"has no '
 USER buildfarm
 ENTRYPOINT ["sh", "-c"]
 @{
-base_paths = [os.path.join(root, 'install_isolated', 'share') for root in workspace_root[0:-1]] + [workspace_root[-1]]
+install_paths = [os.path.join(root, 'install_isolated') for root in workspace_root[0:-1]]
+base_paths = [os.path.join(root, 'share') for root in install_paths] + [workspace_root[-1]]
 cmds = [
     'rosdep update',
 
@@ -103,6 +104,7 @@ if packages_select:
     ]
 cmds += [
     'PYTHONPATH=/tmp/ros_buildfarm:$PYTHONPATH' + \
+    ' COLCON_PREFIX_PATH=' + ':'.join(install_paths) + \
     ' colcon' + \
     ' --log-base /tmp/colcon_log' + \
     ' ros-buildfarm-list-rosdeps' + \
