@@ -36,6 +36,12 @@ parameters = [
     },
     {
         'type': 'string',
+        'name': 'build_ignore',
+        'default_value': ' '.join(build_ignore),
+        'description': 'Package name(s) which should be excluded from the build (space-separated)',
+    },
+    {
+        'type': 'string',
         'name': 'packages_select',
         'default_value': '',
         'description': 'Package(s) to be built (space-separated), or blank for ALL',
@@ -147,7 +153,7 @@ parameters = [
         ' --dockerfile-dir $WORKSPACE/docker_generating_dockers' +
         ' --repos-file-urls $repos_files' +
         ' --skip-rosdep-keys ' + ' '.join(skip_rosdep_keys) +
-        ' --build-ignore ' + ' '.join(build_ignore) +
+        ' --build-ignore $build_ignore' +
         ' --foundation-packages ' + ' '.join(foundation_packages) +
         (' --as-overlay' if underlay_source_job is not None else '') +
         ' --depth-before $depth_before' +
