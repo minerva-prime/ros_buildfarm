@@ -12,14 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from colcon_core.package_decorator import add_recursive_dependencies
-from colcon_core.package_decorator import get_decorators
 from colcon_core.package_selection import add_arguments \
     as add_packages_arguments
-from colcon_core.package_selection import get_package_descriptors
-from colcon_core.package_selection import select_package_decorators
+from colcon_core.package_selection import get_packages
 from colcon_core.plugin_system import satisfies_version
 from colcon_core.verb import VerbExtensionPoint
+
+from colcon_core.shell import find_installed_packages_in_environment
 
 
 class ListRosdepsVerb(VerbExtensionPoint):
@@ -36,36 +35,27 @@ class ListRosdepsVerb(VerbExtensionPoint):
         add_packages_arguments(parser)
 
     def main(self, *, context):
-        descriptors = get_package_descriptors(
-            context.args, additional_argument_names=['*'])
-        decorators = get_decorators(descriptors)
-        package_names = set([desc.name for desc in descriptors])
-        add_recursive_dependencies(
-            decorators,
-            direct_categories=('build', 'test') if context.args.testing else ('build', ),
-            recursive_categories=('run', ))
-        select_package_decorators(context.args, decorators)
+        direct_categories = ('build', 'test') if context.args.testing else ('build', )
+        recursive_categories = ('run', )
 
-        decorators = [dec for dec in decorators if dec.selected]
-        decorators = [dec for dec in decorators if dec.descriptor.type.startswith('ros.')]
+        # Decorators should be in topological order and selected based on args
+        decorators = get_packages(
+            context.args, additional_argument_names=['*'],
+            direct_categories=direct_categories,
+            recursive_categories=recursive_categories)
+
+        package_names = set([pkg.descriptor.name for pkg in decorators])
 
         rosdeps = set()
-        recursive_deps = set()
-        for dec in decorators:
-            recursive_deps.update(dec.recursive_dependencies)
-            if 'build' in dec.descriptor.dependencies:
-                rosdeps.update(dec.descriptor.dependencies['build'])
-            if context.args.testing:
-                if 'run' in dec.descriptor.dependencies:
-                    rosdeps.update(dec.descriptor.dependencies['run'])
-                if 'test' in dec.descriptor.dependencies:
-                    rosdeps.update(dec.descriptor.dependencies['test'])
 
-        for desc in descriptors:
-            if not desc.name in recursive_deps:
-                continue
-            if 'run' in desc.dependencies:
-                rosdeps.update(desc.dependencies['run'])
+        for pkg in reversed(decorators):
+            if pkg.descriptor.type.startswith('ros.'):
+                if pkg.selected:
+                    rosdeps.update(pkg.descriptor.get_dependencies(categories=direct_categories))
+                elif pkg.descriptor.name in rosdeps:
+                    rosdeps.update(pkg.descriptor.get_dependencies(categories=recursive_categories))
+
+        rosdeps -= package_names
 
         for dep in sorted(rosdeps - package_names):
             print(dep)
