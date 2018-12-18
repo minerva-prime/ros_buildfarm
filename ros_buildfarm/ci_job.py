@@ -135,7 +135,7 @@ def configure_ci_jobs(
         content = expand_template(
             'snippet/reconfigure_jobs.groovy.em', groovy_data)
         write_groovy_script_and_configs(
-            groovy_script, content, job_configs)
+            groovy_script, content, job_configs, view_configs)
 
 
 def configure_ci_job(
