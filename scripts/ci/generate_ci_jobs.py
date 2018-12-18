@@ -34,7 +34,6 @@ def main(argv=sys.argv[1:]):
     add_argument_build_name(parser, 'ci')
     add_argument_groovy_script(parser)
     add_argument_dry_run(parser)
-    add_argument_repository_names(parser)
     args = parser.parse_args(argv)
 
     return configure_ci_jobs(

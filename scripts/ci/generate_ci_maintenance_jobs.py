@@ -54,8 +54,6 @@ def main(argv=sys.argv[1:]):
 
     configure_reconfigure_jobs_job(
         jenkins, group_name, args, config, build_file, dry_run=args.dry_run)
-    configure_trigger_jobs_job(
-        jenkins, group_name, build_file, dry_run=args.dry_run)
 
 
 def configure_reconfigure_jobs_job(
@@ -87,24 +85,6 @@ def get_reconfigure_jobs_job_config(args, config, build_file):
             '/home/buildfarm',
             os.path.dirname(get_relative_credential_path())),
 
-        'recipients': build_file.notify_emails,
-    }
-    job_config = expand_template(template_name, job_data)
-    return job_config
-
-
-def configure_trigger_jobs_job(
-        jenkins, group_name, build_file, dry_run=False):
-    job_config = get_trigger_jobs_job_config(group_name, build_file)
-    job_name = '%s_%s' % (group_name, 'trigger-jobs')
-    configure_job(jenkins, job_name, job_config, dry_run=dry_run)
-
-
-def get_trigger_jobs_job_config(group_name, build_file):
-    template_name = 'snippet/trigger-jobs_job.xml.em'
-    job_data = {
-        'has_force_parameter': False,
-        'project_name_pattern': '%s__.*' % group_name,
         'recipients': build_file.notify_emails,
     }
     job_config = expand_template(template_name, job_data)

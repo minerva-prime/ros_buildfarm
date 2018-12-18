@@ -23,11 +23,6 @@
             'name': 'dry_run',
             'description': 'Skip the actual reconfiguration but show the diffs',
         },
-        {
-            'type': 'string',
-            'name': 'repository_names',
-            'description': 'Only reconfigure the jobs of specific repositories',
-        },
     ],
 ))@
   </properties>
