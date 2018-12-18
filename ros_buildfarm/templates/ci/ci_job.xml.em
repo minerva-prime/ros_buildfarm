@@ -470,7 +470,7 @@ parameters = [
 @(SNIPPET(
     'publisher_publish-over-ssh',
     config_name='docs',
-    remote_directory='%s/devel_jobs' % (rosdistro_name),
+    remote_directory='%s/ci_jobs' % (rosdistro_name),
     source_files=[
         'collated_test_stats/results.yaml'
     ],
