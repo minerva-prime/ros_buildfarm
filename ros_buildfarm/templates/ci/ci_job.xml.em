@@ -357,6 +357,7 @@ parameters = [
         'fi',
     ]),
 ))@
+@[if collate_test_stats]@
 @(SNIPPET(
     'builder_shell',
     script='\n'.join([
@@ -366,6 +367,7 @@ parameters = [
         'echo "# END SECTION"',
     ]),
 ))@
+@[end if]@
   </builders>
   <publishers>
 @(SNIPPET(
@@ -382,6 +384,7 @@ parameters = [
     'publisher_xunit',
     pattern='ws/test_results/**/*.xml',
 ))@
+@[if collate_test_stats]@
 @(SNIPPET(
     'publisher_groovy-postbuild',
     script='\n'.join([
@@ -476,6 +479,7 @@ parameters = [
     ],
     remove_prefix='collated_test_stats',
 ))@
+@[end if]@
   </publishers>
   <buildWrappers>
 @[if timeout_minutes is not None]@
