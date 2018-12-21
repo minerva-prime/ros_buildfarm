@@ -46,18 +46,22 @@ def main(argv=sys.argv[1:]):
     add_argument_build_tool(parser)
     parser.add_argument(
         '--skip-cleanup', action='store_true',
-        help="Do not clean up the workspace after the job completes.")
+        help='Skip cleanup of build artifacts')
     parser.add_argument(
-        '--depth-before', type=int, metavar='NUM_BEFORE', default=0,
-        help='Number of forward-dependent packages upon which ' +
-             'the targeted package(s) depends.')
+        '--repos-files', nargs='*', metavar='URL',
+        help='URL(s) of repos file(s) containing the list of packages to be built')
     parser.add_argument(
-        '--depth-after', type=int, metavar='NUM_AFTER', default=0,
-        help='Number of reverse-dependent packages which ' +
-             'depend upon the targeted package(s).')
+        '--build-ignore', nargs='*', metavar='PKG_NAME',
+        help='Package name(s) which should be excluded from the build')
     parser.add_argument(
         '--packages-select', nargs='*', metavar='PKG_NAME',
-        help='Only process a subset of packages.')
+        help='Package(s) to be built')
+    parser.add_argument(
+        '--depth-before', type=int, metavar='NUM_BEFORE', default=None,
+        help='Number of forward dependencies of selected packages to be include in scope')
+    parser.add_argument(
+        '--depth-after', type=int, metavar='NUM_AFTER', default=None,
+        help='Number of reverse dependencies of selected packages to be include in scope')
     args = parser.parse_args(argv)
 
     # collect all template snippets of specific types
@@ -67,13 +71,20 @@ def main(argv=sys.argv[1:]):
             Hook.__init__(self)
             self.scms = []
             self.scripts = []
-            self.parameters = {
-                'skip_cleanup': 'true' if args.skip_cleanup else 'false',
-                'depth_before': str(args.depth_before),
-                'depth_after': str(args.depth_after),
-                'packages_select': ' '.join(args.packages_select)
-                                   if args.packages_select else '',
-            }
+            self.parameters = {}
+
+            if args.skip_cleanup:
+                self.parameters['skip_cleanup'] = 'true'
+            if args.repos_files is not None:
+                self.parameters['repos_files'] = ' '.join(args.repos_files)
+            if args.build_ignore is not None:
+                self.parameters['build_ignore'] = ' '.join(args.build_ignore)
+            if args.packages_select is not None:
+                self.parameters['packages_select'] = ' '.join(args.packages_select)
+            if args.depth_before is not None:
+                self.parameters['depth_before'] = str(args.depth_before)
+            if args.depth_after is not None:
+                self.parameters['depth_after'] = str(args.depth_after)
 
         def beforeInclude(self, *_, **kwargs):
             template_path = kwargs['file'].name
