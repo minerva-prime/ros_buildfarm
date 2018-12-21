@@ -5,7 +5,7 @@ sudo: false
 env:
   global:
     - CONFIG_URL=https://raw.githubusercontent.com/ros-infrastructure/ros_buildfarm_config/production/index.yaml
-    - CONFIG2_URL=https://raw.githubusercontent.com/cottsay/ros_buildfarm_config/cottsay-testfarm/index.yaml
+    - CONFIG2_URL=https://raw.githubusercontent.com/ros2/ros_buildfarm_config/ci/index.yaml
     - ROS_DISTRO_NAME=kinetic
     - ROS2_DISTRO_NAME=bouncy
     - OS_NAME=ubuntu
@@ -52,7 +52,7 @@ matrix:
       sudo: required
       services:
         - docker
-      env: JOB_TYPE=ci 
+      env: JOB_TYPE=ci REPOSITORY_NAMES="ament_cmake_ros"
       before_script:
         # install colcon for test results
         - pip install colcon-core colcon-test-result
@@ -60,7 +60,7 @@ matrix:
         - mkdir job && cd job
         - ln -s .. ros_buildfarm
       script:
-        - generate_ci_script.py $CONFIG2_URL $ROS2_DISTRO_NAME default $OS_NAME $OS_CODE_NAME2 $ARCH > job.sh
+        - generate_ci_script.py $CONFIG2_URL $ROS2_DISTRO_NAME default $OS_NAME $OS_CODE_NAME2 $ARCH --packages-select $REPOSITORY_NAMES --depth-before 100 > job.sh
         - . job.sh -y
         - (exit $test_result_RC)
     - language: python
