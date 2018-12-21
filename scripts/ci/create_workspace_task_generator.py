@@ -23,6 +23,7 @@ from apt import Cache
 from ros_buildfarm.argument import \
     add_argument_distribution_repository_key_files
 from ros_buildfarm.argument import add_argument_distribution_repository_urls
+from ros_buildfarm.argument import add_argument_env_vars
 from ros_buildfarm.argument import add_argument_dockerfile_dir
 from ros_buildfarm.common import get_binary_package_versions
 from ros_buildfarm.common import get_distribution_repository_keys
@@ -57,6 +58,7 @@ def main(argv=sys.argv[1:]):
     add_argument_distribution_repository_urls(parser)
     add_argument_distribution_repository_key_files(parser)
     add_argument_dockerfile_dir(parser)
+    add_argument_env_vars(parser)
     parser.add_argument(
         '--repos-file-urls',
         help='URLs of repos files to import with vcs.',
@@ -114,6 +116,8 @@ def main(argv=sys.argv[1:]):
         'custom_rosdep_urls': [],
 
         'uid': get_user_id(),
+
+        'build_environment_variables': args.env_vars,
 
         'dependencies': debian_pkg_names,
         'dependency_versions': debian_pkg_versions,
