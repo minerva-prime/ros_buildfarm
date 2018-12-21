@@ -44,14 +44,13 @@ class ScopeVerb(VerbExtensionPoint):
         add_packages_arguments(parser)
 
     def main(self, *, context):
-        direct_categories = ('build', 'test') if context.args.testing else ('build', )
-        recursive_categories = ('run', )
+        direct_categories = ('build', 'run', 'test') if context.args.testing else ('build', )
 
         # Decorators should be in topological order and selected based on args
         decorators = get_packages(
             context.args, additional_argument_names=['*'],
             direct_categories=direct_categories,
-            recursive_categories=recursive_categories)
+            recursive_categories=direct_categories)
 
         # Key is package name. Value is depth to be processed after itself.
         # Presence in either dict indicates that the package is in scope.
@@ -65,7 +64,7 @@ class ScopeVerb(VerbExtensionPoint):
                     for dep in pkg.descriptor.get_dependencies(categories=direct_categories):
                         fwd_names[dep] = context.args.depth_before - 1
                 elif fwd_names.get(pkg.descriptor.name, 0) > 0:
-                    for dep in pkg.descriptor.get_dependencies(categories=recursive_categories):
+                    for dep in pkg.descriptor.get_dependencies(categories=direct_categories):
                         if fwd_names.get(dep, -1) < fwd_names[pkg.descriptor.name] - 1:
                             fwd_names[dep] = fwd_names[pkg.descriptor.name] - 1
 
