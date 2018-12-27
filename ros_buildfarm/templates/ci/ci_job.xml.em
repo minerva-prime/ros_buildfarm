@@ -30,6 +30,12 @@ parameters = [
     },
     {
         'type': 'string',
+        'name': 'foundation_packages',
+        'default_value': ' '.join(foundation_packages),
+        'description': 'Package(s) to be installed prior to any packages detected for installation by rosdep (space-separated)',
+    },
+    {
+        'type': 'string',
         'name': 'repos_files',
         'default_value': ' '.join(repos_files),
         'description': 'URL(s) of repos file(s) containing the list of packages to be built (space-separated)',
@@ -161,7 +167,7 @@ parameters = [
         ' --test-branch "$test_branch"' +
         ' --skip-rosdep-keys ' + ' '.join(skip_rosdep_keys) +
         ' --build-ignore $build_ignore' +
-        ' --foundation-packages ' + ' '.join(foundation_packages) +
+        ' --foundation-packages $foundation_packages' +
         (' --as-overlay' if underlay_source_job is not None else '') +
         ' --depth-before $depth_before' +
         ' --depth-after $depth_after' +
