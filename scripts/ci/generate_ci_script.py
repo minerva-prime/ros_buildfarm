@@ -51,6 +51,9 @@ def main(argv=sys.argv[1:]):
         '--repos-files', nargs='*', metavar='URL',
         help='URL(s) of repos file(s) containing the list of packages to be built')
     parser.add_argument(
+        '--test-branch', default=None,
+        help="Branch to attempt to checkout before doing batch job.")
+    parser.add_argument(
         '--build-ignore', nargs='*', metavar='PKG_NAME',
         help='Package name(s) which should be excluded from the build')
     parser.add_argument(
@@ -77,6 +80,8 @@ def main(argv=sys.argv[1:]):
                 self.parameters['skip_cleanup'] = 'true'
             if args.repos_files is not None:
                 self.parameters['repos_files'] = ' '.join(args.repos_files)
+            if args.test_branch is not None:
+                self.parameters['test_branch'] = args.test_branch
             if args.build_ignore is not None:
                 self.parameters['build_ignore'] = ' '.join(args.build_ignore)
             if args.packages_select is not None:

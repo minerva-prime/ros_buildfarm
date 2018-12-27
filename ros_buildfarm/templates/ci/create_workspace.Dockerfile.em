@@ -87,7 +87,8 @@ cmds = [
     'PYTHONPATH=/tmp/ros_buildfarm:$PYTHONPATH python3 -u' + \
     ' /tmp/ros_buildfarm/scripts/ci/create_workspace.py' + \
     ' --workspace-root ' + workspace_root[-1] + \
-    ' --repos-file-urls ' + ' '.join(repos_file_urls),
+    ' --repos-file-urls ' + ' '.join(repos_file_urls) + \
+    ' --test-branch "%s"' % (test_branch, ),
 
     'PYTHONPATH=/tmp/ros_buildfarm:$PYTHONPATH' + \
     ' colcon' + \

@@ -53,6 +53,9 @@ def main(argv=sys.argv[1:]):
         nargs='*',
         required=True)
     parser.add_argument(
+        '--test-branch', default=None,
+        help="Branch to attempt to checkout before doing batch job.")
+    parser.add_argument(
         '--skip-rosdep-keys',
         nargs='*',
         help="The specified rosdep keys will be ignored, i.e. not resolved "

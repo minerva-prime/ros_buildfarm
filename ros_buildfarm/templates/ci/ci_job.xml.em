@@ -36,6 +36,12 @@ parameters = [
     },
     {
         'type': 'string',
+        'name': 'test_branch',
+        'default_value': '',
+        'description': 'Branch to attempt to checkout before doing batch job',
+    },
+    {
+        'type': 'string',
         'name': 'build_ignore',
         'default_value': ' '.join(build_ignore),
         'description': 'Package name(s) which should be excluded from the build (space-separated)',
@@ -152,6 +158,7 @@ parameters = [
         ' --env-vars ' + ' '.join(build_environment_variables) +
         ' --dockerfile-dir $WORKSPACE/docker_generating_dockers' +
         ' --repos-file-urls $repos_files' +
+        ' --test-branch "$test_branch"' +
         ' --skip-rosdep-keys ' + ' '.join(skip_rosdep_keys) +
         ' --build-ignore $build_ignore' +
         ' --foundation-packages ' + ' '.join(foundation_packages) +

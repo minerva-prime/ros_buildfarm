@@ -38,7 +38,7 @@ def main(argv=sys.argv[1:]):
         required=True)
     parser.add_argument(
         '--test-branch', default=None,
-        help="branch to attempt to checkout before doing batch job")
+        help="Branch to attempt to checkout before doing batch job.")
     args = parser.parse_args(argv)
 
     ensure_workspace_exists(args.workspace_root)

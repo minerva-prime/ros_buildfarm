@@ -73,6 +73,7 @@ cmds = [
     args + \
     ' --dockerfile-dir /tmp/docker_create_workspace' + \
     ' --repos-file-urls ' + ' '.join(repos_file_urls) + \
+    ' --test-branch "%s"' % (test_branch, ) + \
     ' --skip-rosdep-keys ' + ' '.join(skip_rosdep_keys) + \
     ' --build-ignore ' + ' '.join(build_ignore) + \
     ' --depth-before %d' % (depth_before, ) + \
@@ -90,5 +91,6 @@ cmds = [
     build_args + \
     ' --dockerfile-dir /tmp/docker_build_and_install',
 ]
+cmd = ' && '.join(cmds).replace('\\', '\\\\').replace('"', '\\"')
 }@
-CMD ["@(' && '.join(cmds))"]
+CMD ["@cmd"]

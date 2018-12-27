@@ -19,7 +19,7 @@ def import_repositories(source_space, repository_file, target_branch):
     cmd = ['vcs', 'import', source_space, '--force', '--retry', '5', '--input', repository_file]
     subprocess.check_call(cmd)
 
-    if target_branch is not None:
+    if target_branch:
         cmd = ['vcs', 'custom', source_space, '--git', '--args', 'checkout', '-b', '__ci_default']
         subprocess.check_call(cmd)
 

@@ -65,6 +65,9 @@ def main(argv=sys.argv[1:]):
         nargs='*',
         required=True)
     parser.add_argument(
+        '--test-branch', default=None,
+        help="Branch to attempt to checkout before doing batch job.")
+    parser.add_argument(
         '--skip-rosdep-keys',
         nargs='*',
         help="The specified rosdep keys will be ignored, i.e. not resolved "
@@ -123,6 +126,7 @@ def main(argv=sys.argv[1:]):
         'dependency_versions': debian_pkg_versions,
 
         'repos_file_urls': args.repos_file_urls,
+        'test_branch': args.test_branch,
 
         'skip_rosdep_keys': args.skip_rosdep_keys,
         'build_ignore': args.build_ignore,
