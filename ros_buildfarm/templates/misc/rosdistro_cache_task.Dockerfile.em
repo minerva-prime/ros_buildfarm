@@ -36,7 +36,7 @@ RUN echo "@today_str"
     os_code_name='xenial',
 ))@
 
-RUN apt-get update && apt-get install -y python3 && apt-get install python-rosdistro
+RUN apt-get update && apt-get install -y python3 && apt-get install -y python-rosdistro
 RUN python3 -u /tmp/wrapper_scripts/apt.py update-install-clean -q -y git python-catkin-pkg python-rosdistro python3-yaml
 
 USER buildfarm
