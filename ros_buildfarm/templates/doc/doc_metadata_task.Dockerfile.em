@@ -36,8 +36,9 @@ RUN echo "@today_str"
     os_code_name='xenial',
 ))@
 
-RUN python3 -u /tmp/wrapper_scripts/apt.py update-install-clean -q -y python3-catkin-pkg-modules python3-rosdistro-modules python3-yaml
-
+RUN python3 -u /tmp/wrapper_scripts/apt.py update-install-clean -q -y python3-pip python3-yaml
+# python3-catkin-pkg-modules python3-rosdistro-modules python3-yaml
+RUN pip3 install empy rosdistro rosdistro-modules catkin-pkg catkin_tools catkin-pkg-modules
 USER buildfarm
 
 ENTRYPOINT ["sh", "-c"]

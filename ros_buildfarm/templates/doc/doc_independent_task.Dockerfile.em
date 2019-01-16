@@ -36,8 +36,9 @@ RUN echo "@today_str"
     os_code_name='xenial',
 ))@
 
-RUN python3 -u /tmp/wrapper_scripts/apt.py update-install-clean -q -y make python-catkin-pkg-modules python-dateutil python-pip python-wstool python-yaml
-RUN pip install -U catkin-sphinx sphinx
+RUN python3 -u /tmp/wrapper_scripts/apt.py update-install-clean -q -y make python3-dateutil python3-pip python-wstool python-yaml
+#python-catkin-pkg-modules python-dateutil python-pip python-wstool python-yaml
+RUN pip3 jenkinsapi install catkin-sphinx sphinx catkin-pkg catkin_tools catkin-pkg-modules
 
 USER buildfarm
 

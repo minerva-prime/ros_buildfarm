@@ -41,8 +41,9 @@ RUN echo "@today_str"
     os_code_name=os_code_name,
 ))@
 
-RUN python3 -u /tmp/wrapper_scripts/apt.py update-install-clean -q -y git python3-apt python3-catkin-pkg-modules python3-empy python3-rosdep python3-rosdistro-modules wget
-
+RUN python3 -u /tmp/wrapper_scripts/apt.py update-install-clean -q -y git python3-apt python-catkin-pkg wget
+RUN pip3 install empy rosdistro rosdistro-modules rosdep catkin-pkg catkin_tools catkin-pkg-modules
+# python3-catkin-pkg-modules python3-empy python3-rosdep
 # always invalidate to actually have the latest apt and rosdep state
 RUN echo "@now_str"
 RUN python3 -u /tmp/wrapper_scripts/apt.py update
